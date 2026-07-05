@@ -1,0 +1,44 @@
+name: Frontend CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'frontend/**' ]
+  pull_request:
+    branches: [ main ]
+    paths: [ 'frontend/**' ]
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Local Image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}/portfolio-frontend:${{ github.sha }} ./frontend
+
+      - name: Scan Image for Vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+        with:
+          image-ref: ghcr.io/${{ github.repository }}/portfolio-frontend:${{ github.sha }}
+          format: 'table'
+          exit-code: '1' 
+          ignore-unfixed: true
+          severity: 'CRITICAL'
+
+      - name: Push Production Image
+        if: github.event_name == 'push'
+        run: |
+          docker push ghcr.io/${{ github.repository }}/portfolio-frontend:${{ github.sha }}
