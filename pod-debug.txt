@@ -1,0 +1,94 @@
+Name:             portfolio-frontend-866dcb4448-glrx4
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             k3d-portfolio-cluster-server-0/172.18.0.3
+Start Time:       Sun, 05 Jul 2026 23:24:13 -0600
+Labels:           app=portfolio-frontend
+                  pod-template-hash=866dcb4448
+Annotations:      <none>
+Status:           Pending
+IP:               10.42.1.6
+IPs:
+  IP:           10.42.1.6
+Controlled By:  ReplicaSet/portfolio-frontend-866dcb4448
+Containers:
+  frontend:
+    Container ID:   
+    Image:          ghcr.io/marcelus85er/portfolio-ops/portfolio-frontend:latest
+    Image ID:       
+    Port:           8080/TCP
+    Host Port:      0/TCP
+    State:          Waiting
+      Reason:       ImagePullBackOff
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-x5skv (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       False 
+  ContainersReady             False 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-x5skv:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+
+
+Name:             portfolio-frontend-866dcb4448-s7sk6
+Namespace:        default
+Priority:         0
+Service Account:  default
+Node:             k3d-portfolio-cluster-agent-0/172.18.0.4
+Start Time:       Sun, 05 Jul 2026 23:24:13 -0600
+Labels:           app=portfolio-frontend
+                  pod-template-hash=866dcb4448
+Annotations:      <none>
+Status:           Pending
+IP:               10.42.0.6
+IPs:
+  IP:           10.42.0.6
+Controlled By:  ReplicaSet/portfolio-frontend-866dcb4448
+Containers:
+  frontend:
+    Container ID:   
+    Image:          ghcr.io/marcelus85er/portfolio-ops/portfolio-frontend:latest
+    Image ID:       
+    Port:           8080/TCP
+    Host Port:      0/TCP
+    State:          Waiting
+      Reason:       ImagePullBackOff
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-2q5ng (ro)
+Conditions:
+  Type                        Status
+  PodReadyToStartContainers   True 
+  Initialized                 True 
+  Ready                       False 
+  ContainersReady             False 
+  PodScheduled                True 
+Volumes:
+  kube-api-access-2q5ng:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    Optional:                false
+    DownwardAPI:             true
+QoS Class:                   BestEffort
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s

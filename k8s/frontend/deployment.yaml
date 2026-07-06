@@ -17,7 +17,8 @@ spec:
       - name: frontend
         # The specific Git commit hash your CI pipeline built
         image: ghcr.io/marcelus85er/portfolio-ops/portfolio-frontend:49f4f8163b91230c53bab74640e0cfaf756d5868
+        imagePullPolicy: Always
         ports:
-        - containerPort: 8080
+        - containerPort: 80
       imagePullSecrets:
       - name: ghcr-login-secret
