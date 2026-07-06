@@ -3,10 +3,14 @@ name: Frontend CI Pipeline
 on:
   push:
     branches: [ main ]
-    paths: [ 'frontend/**' ]
+    paths: 
+      - 'frontend/**'
+      - '.github/workflows/**'
   pull_request:
     branches: [ main ]
-    paths: [ 'frontend/**' ]
+    paths: 
+      - 'frontend/**'
+      - '.github/workflows/**'
 
 jobs:
   build-and-verify:
@@ -18,7 +22,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # NEW STEP: Convert the repository name to lowercase using Bash and save it to the GitHub Environment
+      # Converts the GitHub repository name to lowercase to satisfy Docker's strict naming rules
       - name: Set lowercase repository name
         run: |
           echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
@@ -31,7 +35,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Local Image
-        # Notice we swapped github.repository for env.REPO_LC
         run: |
           docker build -t ghcr.io/${{ env.REPO_LC }}/portfolio-frontend:${{ github.sha }} ./frontend
 
@@ -45,6 +48,7 @@ jobs:
           severity: 'CRITICAL'
 
       - name: Push Production Image
+        # Only pushes the image if this is a merge into the main branch
         if: github.event_name == 'push'
         run: |
           docker push ghcr.io/${{ env.REPO_LC }}/portfolio-frontend:${{ github.sha }}
