@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-backend
+  labels:
+    app: portfolio-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portfolio-backend
+  template:
+    metadata:
+      labels:
+        app: portfolio-backend
+    spec:
+      containers:
+      - name: backend
+        image: ghcr.io/marcelus85er/portfolio-backend:v1
+        ports:
+        - containerPort: 3000
+        env:
+        # Standard Environment Variables
+        - name: DB_HOST
+          value: "postgres"
+        - name: S3_ENDPOINT
+          value: "http://minio:9000"
+        - name: S3_PUBLIC_URL
+          value: "http://localhost:9001"
+        # Secret Environment Variables (Injected from K8s Vault)
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: POSTGRES_PASSWORD
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: rootUser
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: rootPassword
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portfolio-backend
+spec:
+  selector:
+    app: portfolio-backend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
