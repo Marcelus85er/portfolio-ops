@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: ghcr.io/marcelus85er/portfolio-backend:v2
+        image: ghcr.io/marcelus85er/portfolio-backend:v3
         ports:
         - containerPort: 3000
         env:
