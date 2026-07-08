@@ -42,12 +42,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: minio-secret
-              key: rootUser
+              key: MINIO_ROOT_USER    # FIXED THIS KEY
         - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: minio-secret
-              key: rootPassword
+              key: MINIO_ROOT_PASSWORD # FIXED THIS KEY
 ---
 apiVersion: v1
 kind: Service
