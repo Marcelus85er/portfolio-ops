@@ -99,6 +99,30 @@
         </div>
     </section>
 
+    <!-- API Playground -->
+    <section id="api-playground" class="max-w-6xl mx-auto px-4 py-20">
+        <h2 class="text-3xl font-bold tracking-tight mb-2">Cloud Storage & API</h2>
+        <p class="text-slate-400 mb-8">Test the live connection to the Kubernetes backend, Postgres, and MinIO storage.</p>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-brand-card border border-slate-800 rounded-xl p-6">
+                <h3 class="text-xl font-bold mb-4">Backend Status</h3>
+                <button onclick="checkHealth()" class="px-4 py-2 bg-brand-dark border border-slate-700 rounded-lg text-sm hover:border-brand-accent transition">Ping API</button>
+                <div id="health-result" class="mt-4 text-xs font-mono text-brand-accent p-3 bg-slate-900 rounded hidden"></div>
+            </div>
+
+            <div class="bg-brand-card border border-slate-800 rounded-xl p-6">
+                <h3 class="text-xl font-bold mb-4">Upload Media to MinIO</h3>
+                <p class="text-xs text-slate-500 mb-4">Accepts Images, PDFs, TXT, DOCX, MP3, and MP4 (Max 50MB).</p>
+                <form id="uploadForm" onsubmit="uploadFile(event)" class="space-y-4">
+                    <input type="file" id="fileInput" name="image" class="w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-dark file:text-brand-accent hover:file:bg-slate-800" required>
+                    <button type="submit" id="uploadBtn" class="w-full bg-brand-accent text-brand-dark font-bold py-2 rounded-lg hover:bg-sky-400 transition">Upload File</button>
+                </form>
+                <div id="upload-result" class="mt-4 text-xs font-mono text-brand-accent p-3 bg-slate-900 rounded hidden break-all"></div>
+            </div>
+        </div>
+    </section>
+
     <!-- Contact Form Section -->
     <section id="contact" class="bg-slate-900/50 border-t border-slate-800 py-20">
         <div class="max-w-xl mx-auto px-4">
@@ -133,6 +157,63 @@
                     card.style.display = 'none';
                 }
             });
+        }
+
+        // --- NEW API LOGIC ---
+
+        // 1. Check API Health
+        async function checkHealth() {
+            const resultDiv = document.getElementById('health-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerText = 'Pinging...';
+            try {
+                // Notice we just call '/api/health'. Nginx handles routing it to the backend!
+                const res = await fetch('/api/health');
+                const data = await res.json();
+                resultDiv.innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                resultDiv.innerText = 'Error connecting to API. Check Kubernetes logs.';
+            }
+        }
+
+        // 2. Upload File to MinIO via Backend
+        async function uploadFile(event) {
+            event.preventDefault(); // Prevent page reload
+            
+            const fileInput = document.getElementById('fileInput');
+            const resultDiv = document.getElementById('upload-result');
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            if (fileInput.files.length === 0) return;
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            uploadBtn.innerText = 'Uploading...';
+            uploadBtn.disabled = true;
+            resultDiv.style.display = 'block';
+            resultDiv.innerText = 'Processing via Node.js...';
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    resultDiv.innerHTML = `<span class="text-green-400">Success!</span><br><a href="${data.url}" target="_blank" class="underline mt-2 inline-block">View Uploaded File</a>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="text-red-400">Failed:</span> ${data.error}`;
+                }
+            } catch (err) {
+                resultDiv.innerText = 'Upload failed. Check network tab.';
+            } finally {
+                uploadBtn.innerText = 'Upload File';
+                uploadBtn.disabled = false;
+                fileInput.value = ''; // Clear input
+            }
         }
     </script>
 </body>
