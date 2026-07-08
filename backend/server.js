@@ -252,6 +252,40 @@ app.get('/api/projects', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
+// ==========================================
+// Start Server & Graceful Shutdown
+// ==========================================
+const server = app.listen(port, () => {
     console.log(`🚀 Backend API running on port ${port}`);
 });
+
+// Graceful Shutdown Logic
+const gracefulShutdown = (signal) => {
+    console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
+    
+    // 1. Stop accepting new HTTP requests
+    server.close(() => {
+        console.log('✅ HTTP server closed. No longer accepting new requests.');
+        
+        // 2. Politely close the database connection pool
+        console.log('🛑 Closing PostgreSQL database connections...');
+        db.end().then(() => {
+            console.log('✅ PostgreSQL pool closed. Exiting process safely.');
+            process.exit(0); // Exit with "Success" code
+        }).catch(err => {
+            console.error('❌ Error during database disconnection:', err.stack);
+            process.exit(1); // Exit with "Error" code
+        });
+    });
+
+    // 3. Fallback: Force shutdown if it takes longer than 10 seconds
+    setTimeout(() => {
+        console.error('❌ Graceful shutdown timeout (10s), forcing exit.');
+        process.exit(1);
+    }, 10000);
+};
+
+// Listen for Kubernetes termination signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM')); 
+// Listen for Ctrl+C in terminal
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
