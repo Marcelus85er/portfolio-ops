@@ -3,8 +3,20 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Home | Marcel">
-    <div class="text-center py-20">
-        <h1 class="text-5xl font-extrabold text-white mb-6">Welcome to the New Architecture</h1>
+    <div class="flex flex-col items-center text-center py-20">
+        
+        <script type="module" src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs"></script>
+        <dotlottie-player 
+            src="/Rocket_Launch.lottie" 
+            background="transparent" 
+            speed="1" 
+            style="width: 350px; height: 350px;" 
+            loop 
+            autoplay>
+        </dotlottie-player>
+
+        <h1 class="text-5xl font-extrabold text-white mt-8 mb-6">Welcome to the New Architecture</h1>
         <p class="text-xl text-slate-400">The layout is officially working.</p>
+        
     </div>
 </Layout>
