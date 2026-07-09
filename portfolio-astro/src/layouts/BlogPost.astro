@@ -1,51 +1,40 @@
 ---
-// src/layouts/Layout.astro
-import '../styles/global.css';
+import type { CollectionEntry } from 'astro:content';
+import Layout from './Layout.astro';
+import { Image } from 'astro:assets';
 
-// This allows us to pass a custom title from each page
-const { title = "Marcel | Cloud Engineer" } = Astro.props;
+type Props = CollectionEntry<'blog'>['data'];
+
+const { title, description, pubDate, updatedDate, heroImage, tags } = Astro.props;
 ---
 
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>{title}</title>
-</head>
-<body class="bg-slate-950 text-slate-200 min-h-screen flex flex-col font-sans selection:bg-blue-500/30">
-    
-    <!-- Global Navigation -->
-    <nav class="border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <div class="flex-shrink-0 font-bold text-2xl tracking-tighter text-white">
-                    <a href="/" class="hover:text-blue-400 transition-colors">Marcel<span class="text-blue-500">.ops</span></a>
+<Layout title={`${title} | Marcel Avila`}>
+    <article class="max-w-4xl mx-auto pt-12 pb-24">
+        
+        <!-- Post Header -->
+        <div class="mb-12 border-b border-slate-800/60 pb-8 text-center md:text-left">
+            <!-- Tags -->
+            {tags && (
+                <div class="flex flex-wrap justify-center md:justify-start gap-2 mb-6">
+                    {tags.map((tag) => (
+                        <span class="bg-slate-900 text-sky-400 text-xs px-3 py-1.5 rounded-md font-bold tracking-widest uppercase border border-slate-800">
+                            {tag}
+                        </span>
+                    ))}
                 </div>
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-8 text-sm font-medium">
-                        <a href="/about" class="text-slate-300 hover:text-white transition-colors">About</a>
-                        <a href="/portfolio" class="text-slate-300 hover:text-white transition-colors">Portfolio</a>
-                        <a href="/blog" class="text-slate-300 hover:text-white transition-colors">Blog</a>
-                        <a href="/contact" class="text-slate-300 hover:text-white transition-colors">Contact</a>
-                    </div>
-                </div>
+            )}
+            
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">{title}</h1>
+            <p class="text-xl text-slate-400 mb-6">{description}</p>
+            <div class="text-sm text-slate-500 font-medium tracking-wide">
+                Published on <time>{pubDate.toLocaleDateString('en-us', { year: 'numeric', month: 'short', day: 'numeric' })}</time>
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content Injected Here -->
-    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <slot />
-    </main>
-
-    <!-- Global Footer -->
-    <footer class="border-t border-slate-800/60 py-8 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} Marcel. Cloud Infrastructure & DevOps Portfolio.</p>
+        <!-- The Magic Typography Wrapper -->
+        <div class="prose prose-invert prose-slate prose-a:text-sky-400 hover:prose-a:text-sky-300 prose-img:rounded-xl max-w-none">
+            <slot />
         </div>
-    </footer>
 
-</body>
-</html>
+    </article>
+</Layout>
