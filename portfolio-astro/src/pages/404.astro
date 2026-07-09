@@ -6,12 +6,12 @@ import Layout from '../layouts/Layout.astro';
     <div class="flex flex-col items-center justify-center py-20 text-center">
         <script type="module" src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs"></script>
         
-        <!-- Notice the class="invert hue-rotate-180" added below -->
+        <!-- Added mix-blend-screen to knock out the black background -->
         <dotlottie-player 
             src="/Rocket_in_space.lottie" 
             background="transparent" 
             speed="1" 
-            class="invert hue-rotate-180"
+            class="invert hue-rotate-180 mix-blend-screen"
             style="width: 250px; height: 250px;" 
             loop 
             autoplay>
