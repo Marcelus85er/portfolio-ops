@@ -3,14 +3,13 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout title="Marcel Avila | Cloud Infrastructure & AI Automation">
-    <div class="space-y-24 pb-24">
-        
-        <!-- 1. Hero Section -->
-        <section class="flex flex-col md:flex-row items-center justify-between gap-12 pt-12">
+    <div class="pt-12 pb-24">
+        <!-- Hero Section -->
+        <section class="flex flex-col md:flex-row items-center justify-between gap-12">
             <div class="flex-1 space-y-6">
                 <h1 class="text-5xl md:text-6xl font-extrabold text-white leading-tight tracking-tight">
-                    Building the future of <br/>
-                    <span class="text-sky-400">Cloud Infrastructure</span> & <br/>
+                    Building the future of <br />
+                    <span class="text-sky-400">Cloud Infrastructure</span> &amp; <br />
                     AI Automation.
                 </h1>
                 <p class="text-lg text-slate-400 max-w-2xl leading-relaxed">
@@ -18,7 +17,7 @@ import Layout from '../layouts/Layout.astro';
                 </p>
             </div>
             
-            <!-- Rocket Animation Container (Replicating the gradient ring) -->
+            <!-- Rocket Animation Container -->
             <div class="flex-shrink-0 relative w-72 h-72 rounded-full border-[3px] border-sky-500/30 bg-gradient-to-tr from-sky-500/10 to-transparent flex items-center justify-center">
                 <script type="module" src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.mjs"></script>
                 <dotlottie-player 
@@ -26,8 +25,10 @@ import Layout from '../layouts/Layout.astro';
                     background="transparent" 
                     speed="1" 
                     style="width: 200px; height: 200px;" 
-                    loop 
-                    autoplay>
+                    loop="true" 
+                    autoplay="true">
                 </dotlottie-player>
             </div>
         </section>
+    </div>
+</Layout>
