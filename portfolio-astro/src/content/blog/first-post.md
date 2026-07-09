@@ -2,7 +2,7 @@
 title: 'GitOps K3d Cluster'
 description: 'A locally hosted Kubernetes cluster driven entirely by declarative configurations and managed by ArgoCD.'
 pubDate: 'Jul 08 2022'
-heroImage: '/blog-placeholder-3.jpg'
+heroImage: '../../assets/blog-placeholder-3.jpg'
 tags: ["portfolio", "k8s", "gitops"]
 ---
 
