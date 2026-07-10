@@ -8,7 +8,8 @@ const {
     PutObjectCommand, 
     ListObjectsV2Command, 
     HeadObjectCommand, 
-    DeleteObjectCommand 
+    DeleteObjectCommand,
+    GetObjectCommand 
 } = require('@aws-sdk/client-s3');
 require('dotenv').config();
 
@@ -134,7 +135,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
             ContentType: req.file.mimetype,
         }));
 
-        const fileUrl = `${process.env.S3_PUBLIC_URL || 'http://localhost:9001'}/portfolio-assets/${fileName}`;
+        const fileUrl = `https://marcel-avila.com/api/files/download/${fileName}`;
         res.json({ message: 'File uploaded successfully!', url: fileUrl });
 
     } catch (error) {
@@ -165,7 +166,7 @@ app.post('/api/upload/bulk', upload.array('images', 10), async (req, res) => {
                 ContentType: file.mimetype,
             }));
 
-            uploadedUrls.push(`${process.env.S3_PUBLIC_URL || 'http://localhost:9001'}/portfolio-assets/${fileName}`);
+            uploadedUrls.push(`https://marcel-avila.com/api/files/download/${fileName}`);
         }
 
         res.json({ message: `${req.files.length} files uploaded successfully!`, urls: uploadedUrls });
@@ -184,7 +185,7 @@ app.get('/api/files', async (req, res) => {
             filename: item.Key,
             size: item.Size,
             lastModified: item.LastModified,
-            url: `${process.env.S3_PUBLIC_URL || 'http://localhost:9001'}/portfolio-assets/${item.Key}`
+            url: `https://marcel-avila.com/api/files/download/${item.Key}`
         })) : [];
         res.json({ files });
     } catch (error) {
@@ -249,6 +250,27 @@ app.get('/api/projects', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to fetch projects' });
+    }
+});
+
+// --- Securely Stream File from MinIO to Browser ---
+
+app.get('/api/files/download/:filename', async (req, res) => {
+    try {
+        const command = new GetObjectCommand({
+            Bucket: 'portfolio-assets',
+            Key: req.params.filename
+        });
+        const data = await s3Client.send(command);
+        
+        // Tell the browser what kind of file it is (e.g., image/png)
+        res.setHeader('Content-Type', data.ContentType);
+        
+        // Pipe the file stream directly to the user
+        data.Body.pipe(res);
+    } catch (error) {
+        console.error("Error fetching file:", error);
+        res.status(404).json({ error: 'File not found in storage.' });
     }
 });
 
