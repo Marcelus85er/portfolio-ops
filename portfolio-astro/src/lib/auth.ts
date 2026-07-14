@@ -8,6 +8,7 @@ const dbPool = new Pool({
 });
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:4321",  
   database: dbPool,
   plugins: [
     genericOAuth({

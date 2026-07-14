@@ -12,6 +12,23 @@ import Layout from '../layouts/Layout.astro';
                     <span class="text-sky-400">Cloud Infrastructure</span> &amp; <br />
                     AI Automation.
                 </h1>
+                <button id="login-btn" class="bg-blue-500 text-white px-4 py-2 rounded">
+                 Log In with Keycloak
+                </button>
+
+                <script>
+                import { authClient } from "../lib/auth-client";
+
+                const loginBtn = document.getElementById("login-btn");
+      
+                loginBtn?.addEventListener("click", async () => {
+                // This triggers the Keycloak redirect!
+                await authClient.signIn.oauth2({
+                providerId: "keycloak",
+                callbackURL: "/dashboard", // Where to go after logging in
+                  });
+                 });
+                </script>
                 <p class="text-lg text-slate-400 max-w-2xl leading-relaxed">
                     Hi, I'm Marcel. I design and build highly available, secure, and automated environments using Kubernetes, GitOps pipelines, and AI integrations. Welcome to my cloud-native portfolio.
                 </p>
