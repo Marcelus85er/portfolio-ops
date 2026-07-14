@@ -18,6 +18,11 @@ export const auth = betterAuth({
           clientId: "portfolio-app",
           clientSecret: "", 
           discoveryUrl: "http://localhost:8080/realms/portfolio/.well-known/openid-configuration",
+          authorizationUrl: "http://localhost:8080/realms/portfolio/protocol/openid-connect/auth",
+          tokenUrl: "http://localhost:8080/realms/portfolio/protocol/openid-connect/token",
+          userInfoUrl: "http://localhost:8080/realms/portfolio/protocol/openid-connect/userinfo",
+          // Add the scopes array here:
+          scopes: ["openid", "profile", "email"],
         },
       ],
     }),
