@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_blocks_architecture_diagrams",
+  "info": {
+    "displayName": "Architecture Diagram"
+  },
+  "options": {},
+  "attributes": {
+    "diagramImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "caption": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

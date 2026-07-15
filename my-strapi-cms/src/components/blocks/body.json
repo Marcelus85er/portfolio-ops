@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_blocks_bodies",
+  "info": {
+    "displayName": "Body",
+    "icon": "write"
+  },
+  "options": {},
+  "attributes": {
+    "Body": {
+      "type": "blocks"
+    }
+  },
+  "config": {}
+}
