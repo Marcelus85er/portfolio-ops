@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_blocks_advertises",
+  "info": {
+    "displayName": "Advertise",
+    "icon": "priceTag"
+  },
+  "options": {},
+  "attributes": {
+    "adScrypt": {
+      "type": "text"
+    }
+  },
+  "config": {}
+}

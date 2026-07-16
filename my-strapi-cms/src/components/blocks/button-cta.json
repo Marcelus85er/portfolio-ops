@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_blocks_button_ctas",
+  "info": {
+    "displayName": "Button / CTA",
+    "icon": "cursor"
+  },
+  "options": {},
+  "attributes": {
+    "buttonText": {
+      "type": "string"
+    },
+    "destinationURL": {
+      "type": "string"
+    },
+    "style": {
+      "type": "enumeration",
+      "enum": [
+        "primary",
+        "secondary",
+        "outline"
+      ]
+    }
+  },
+  "config": {}
+}

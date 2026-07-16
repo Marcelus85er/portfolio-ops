@@ -1,0 +1,21 @@
+{
+  "kind": "singleType",
+  "collectionName": "api_portals",
+  "info": {
+    "singularName": "api-portal",
+    "pluralName": "api-portals",
+    "displayName": "API Portal"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "body": {
+      "type": "dynamiczone",
+      "components": [
+        "blocks.body"
+      ]
+    }
+  }
+}

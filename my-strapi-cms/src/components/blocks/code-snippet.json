@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_blocks_code_snippets",
+  "info": {
+    "displayName": "Code Snippet",
+    "icon": "code"
+  },
+  "options": {},
+  "attributes": {
+    "Language": {
+      "type": "enumeration",
+      "enum": [
+        "bash",
+        "yaml",
+        "typescript",
+        "json"
+      ]
+    },
+    "code": {
+      "type": "text"
+    },
+    "filename": {
+      "type": "text"
+    }
+  },
+  "config": {}
+}

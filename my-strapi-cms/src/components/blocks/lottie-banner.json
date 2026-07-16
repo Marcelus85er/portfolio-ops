@@ -1,0 +1,34 @@
+{
+  "collectionName": "components_blocks_lottie_banners",
+  "info": {
+    "displayName": "Lottie Banner",
+    "icon": "slideshow"
+  },
+  "options": {},
+  "attributes": {
+    "animationURL": {
+      "type": "string"
+    },
+    "loop": {
+      "type": "boolean",
+      "default": true
+    },
+    "playOnce": {
+      "type": "boolean",
+      "default": false
+    },
+    "bannerTitle": {
+      "type": "string"
+    },
+    "bannerText": {
+      "type": "text"
+    },
+    "CTA": {
+      "type": "string"
+    },
+    "ctaURL": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

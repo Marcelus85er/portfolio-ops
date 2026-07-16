@@ -1,0 +1,36 @@
+{
+  "kind": "singleType",
+  "collectionName": "homepages",
+  "info": {
+    "singularName": "homepage",
+    "pluralName": "homepages",
+    "displayName": "Homepage"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "heroHeadline": {
+      "type": "string"
+    },
+    "heroSubtext": {
+      "type": "string"
+    },
+    "portfolios": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::portfolio.portfolio"
+    },
+    "white_paper": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::white-paper.white-paper"
+    },
+    "LottieBanner": {
+      "type": "component",
+      "component": "blocks.lottie-banner",
+      "repeatable": false
+    }
+  }
+}

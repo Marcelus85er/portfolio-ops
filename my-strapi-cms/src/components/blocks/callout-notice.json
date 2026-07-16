@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_blocks_callout_notices",
+  "info": {
+    "displayName": "Callout / Notice",
+    "icon": "grid"
+  },
+  "options": {},
+  "attributes": {
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "info",
+        "warning",
+        "success",
+        "danger"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "text"
+    }
+  },
+  "config": {}
+}

@@ -3,6 +3,13 @@
 import '../styles/global.css';
 
 const { title = "Marcel | Cloud Engineer" } = Astro.props;
+
+// 1. Fetch the Navigation Data from Strapi
+const response = await fetch('http://localhost:1337/api/main-navigation?populate=*');
+const { data } = await response.json();
+
+// 2. Extract the array of links (fallback to empty array to prevent crashes)
+const menuItems = data?.Menu || [];
 ---
 
 <!DOCTYPE html>
@@ -20,13 +27,16 @@ const { title = "Marcel | Cloud Engineer" } = Astro.props;
             <div class="font-bold text-2xl text-white">
                 <a href="/">Marcel<span class="text-blue-500">.ops</span></a>
             </div>
+            
+            <!-- NEW: Dynamic Link Generation -->
             <div class="flex space-x-8 text-sm font-medium">
-                <a href="/about" class="text-slate-300 hover:text-white">About</a>
-                <a href="/portfolio" class="text-slate-300 hover:text-white">Portfolio</a>
-                <a href="/blog" class="text-slate-300 hover:text-white">Blog</a>
-                <a href="/api" class="hover:text-sky-400 transition-colors">API</a>
-                <a href="/contact" class="text-slate-300 hover:text-white">Contact</a>
+                {menuItems.map((item: any) => (
+                    <a href={item.URL} class="text-slate-300 hover:text-white transition-colors">
+                        {item.label}
+                    </a>
+                ))}
             </div>
+            
         </div>
     </nav>
 
