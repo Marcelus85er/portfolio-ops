@@ -3,7 +3,7 @@
 import Layout from '../../layouts/Layout.astro';
 
 export async function getStaticPaths() {
-    const response = await fetch('http://localhost:1337/api/portfolios?populate=*');
+    const response = await fetch('http://localhost:1337/api/portfolios?populate=blocks*');
     const { data } = await response.json();
 
     return data.map((item: any) => ({

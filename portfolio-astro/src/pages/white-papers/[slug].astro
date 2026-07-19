@@ -5,7 +5,7 @@ import Layout from '../../layouts/Layout.astro';
 // 1. Tell Astro which dynamic pages to generate at build time
 export async function getStaticPaths() {
     // Fetch ALL white papers from Strapi
-    const response = await fetch('http://localhost:1337/api/white-papers?populate=*');
+    const response = await fetch('http://localhost:1337/api/white-papers?populate=blocks');
     const { data } = await response.json();
 
     // Map through the array and create a route for every single slug
