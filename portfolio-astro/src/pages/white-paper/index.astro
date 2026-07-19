@@ -1,0 +1,61 @@
+---
+// src/pages/white-papers/index.astro
+import Layout from '../../layouts/Layout.astro';
+
+// 1. Fetch ALL White Papers from Strapi
+// Notice we are targeting the plural endpoint for the Collection Type
+const response = await fetch('http://localhost:1337/api/white-papers?populate=*');
+const { data } = await response.json();
+
+// 2. Ensure we have an array to map over (fallback to empty array)
+const whitePapers = data || [];
+---
+
+<Layout title="White Papers | Marcel.ops">
+    
+    <!-- Category Header -->
+    <header class="mb-12 border-b border-slate-800 pb-8">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+            White <span class="text-sky-400">Papers</span>
+        </h1>
+        <p class="text-lg text-slate-400 max-w-2xl">
+            Deep dives into cloud architecture, Kubernetes optimization, and automated infrastructure design.
+        </p>
+    </header>
+
+    <!-- Grid Layout for the Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- 3. Map over the array to generate a card for every article -->
+        {whitePapers.map((paper: any) => (
+            <a 
+                href={`/white-papers/${paper.slug}`} 
+                class="block p-6 rounded-xl bg-slate-900 border border-slate-800 hover:border-sky-500/50 hover:bg-slate-800/80 transition-all shadow-lg"
+            >
+                <h2 class="text-xl font-bold text-slate-200 mb-2">
+                    {paper.title}
+                </h2>
+                
+                {paper.description && (
+                    <p class="text-sm text-slate-400 line-clamp-3 mb-4">
+                        {paper.description}
+                    </p>
+                )}
+                
+                <div class="text-sky-400 text-sm font-medium flex items-center gap-2">
+                    Read Paper 
+                    <span aria-hidden="true">&rarr;</span>
+                </div>
+            </a>
+        ))}
+        
+    </div>
+    
+    <!-- Empty State Fallback -->
+    {whitePapers.length === 0 && (
+        <div class="text-center py-12 text-slate-500 bg-slate-900/50 rounded-xl border border-dashed border-slate-700/50">
+            No white papers have been published yet.
+        </div>
+    )}
+
+</Layout>

@@ -1,0 +1,44 @@
+---
+// src/pages/white-papers/[slug].astro
+import Layout from '../../layouts/Layout.astro';
+
+// 1. Tell Astro which dynamic pages to generate at build time
+export async function getStaticPaths() {
+    // Fetch ALL white papers from Strapi
+    const response = await fetch('http://localhost:1337/api/white-papers?populate=*');
+    const { data } = await response.json();
+
+    // Map through the array and create a route for every single slug
+    return data.map((item: any) => ({
+        // The URL will become /white-papers/whatever-the-slug-is
+        params: { slug: item.slug }, 
+        // Pass the specific white paper's data to the HTML template below
+        props: { paper: item },      
+    }));
+}
+
+// 2. Extract the data for this specific page
+const { paper } = Astro.props;
+---
+
+<Layout title={`${paper.title} | Marcel.ops`}>
+    
+    <!-- Dynamic Page Content -->
+    <article class="max-w-4xl mx-auto py-12">
+        <header class="mb-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+                {paper.title}
+            </h1>
+            <p class="text-sky-400 font-mono text-sm">
+                Published: {new Date(paper.publishedAt).toLocaleDateString()}
+            </p>
+        </header>
+
+        <!-- Main Body Content -->
+        <div class="prose prose-invert prose-sky max-w-none text-slate-300">
+            {/* We will inject the Strapi rich text content here in the next step */}
+            <p>Placeholder for the main content...</p>
+        </div>
+    </article>
+
+</Layout>

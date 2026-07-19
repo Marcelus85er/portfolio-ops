@@ -469,6 +469,35 @@ export interface ApiApiPortalApiPortal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiFooterNavigationFooterNavigation
+  extends Struct.SingleTypeSchema {
+  collectionName: 'footer_navigations';
+  info: {
+    displayName: 'Footer Navigation';
+    pluralName: 'footer-navigations';
+    singularName: 'footer-navigation';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    footerMenu: Schema.Attribute.Component<'shared.footer-navigation', true>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::footer-navigation.footer-navigation'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiHomepageHomepage extends Struct.SingleTypeSchema {
   collectionName: 'homepages';
   info: {
@@ -1168,6 +1197,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::api-portal.api-portal': ApiApiPortalApiPortal;
+      'api::footer-navigation.footer-navigation': ApiFooterNavigationFooterNavigation;
       'api::homepage.homepage': ApiHomepageHomepage;
       'api::main-navigation.main-navigation': ApiMainNavigationMainNavigation;
       'api::portfolio.portfolio': ApiPortfolioPortfolio;

@@ -1,0 +1,41 @@
+---
+// src/pages/portfolio/[slug].astro
+import Layout from '../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+    const response = await fetch('http://localhost:1337/api/portfolios?populate=*');
+    const { data } = await response.json();
+
+    return data.map((item: any) => ({
+        params: { slug: item.slug }, 
+        props: { project: item },      
+    }));
+}
+
+const { project } = Astro.props;
+---
+
+<Layout title={`${project.title} | Marcel.ops`}>
+    
+    <article class="max-w-4xl mx-auto py-12">
+        <header class="mb-10 pb-8 border-b border-slate-800">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+                {project.title}
+            </h1>
+            
+            {/* Optional: Add a metadata row if you have fields like 'TechStack' or 'Date' in Strapi */}
+            <div class="flex items-center gap-4 text-sm font-mono text-slate-400 mt-6">
+                <span class="bg-slate-800 px-3 py-1 rounded-md text-sky-400">
+                    Project Showcase
+                </span>
+                <span>Published: {new Date(project.publishedAt).toLocaleDateString()}</span>
+            </div>
+        </header>
+
+        <div class="prose prose-invert prose-sky max-w-none text-slate-300">
+            {/* The main body content will go here */}
+            <p>Project details loading...</p>
+        </div>
+    </article>
+
+</Layout>

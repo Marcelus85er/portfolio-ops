@@ -131,6 +131,17 @@ export interface BlocksVideoEmbed extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedFooterNavigation extends Struct.ComponentSchema {
+  collectionName: 'components_shared_footer_navigations';
+  info: {
+    displayName: 'Footer Navigation';
+  };
+  attributes: {
+    label: Schema.Attribute.String;
+    URL: Schema.Attribute.String;
+  };
+}
+
 export interface SharedSeo extends Struct.ComponentSchema {
   collectionName: 'components_shared_seos';
   info: {
@@ -159,6 +170,7 @@ declare module '@strapi/strapi' {
       'blocks.lottie-banner': BlocksLottieBanner;
       'blocks.menu': BlocksMenu;
       'blocks.video-embed': BlocksVideoEmbed;
+      'shared.footer-navigation': SharedFooterNavigation;
       'shared.seo': SharedSeo;
     }
   }

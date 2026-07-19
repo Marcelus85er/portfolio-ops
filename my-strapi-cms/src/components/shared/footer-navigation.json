@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_shared_footer_navigations",
+  "info": {
+    "displayName": "Footer Navigation"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    },
+    "URL": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}
