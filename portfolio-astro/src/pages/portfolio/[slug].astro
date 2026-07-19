@@ -40,11 +40,17 @@ const { project } = Astro.props;
             
             {project.blocks && project.blocks.length > 0 ? (
                 project.blocks.map((block: any) => {
-                    // Renders the exact same structured layout text if built symmetrically
+                    
+                    // Check if the current block is our Body component
                     if (block.__component && block.__component.toLowerCase().includes('body')) {
-                        const textContent = block.Body || block.body || '';
-                        const parsedHTML = marked.parse(textContent);
                         
+                        // Extract the markdown string from our new 'content' field
+                        const rawMarkdown = block.content || '';
+                        
+                        // Parse it into HTML
+                        const parsedHTML = marked.parse(rawMarkdown);
+                        
+                        // Render it to the screen
                         return <div set:html={parsedHTML} class="mb-6" />
                     }
                     
