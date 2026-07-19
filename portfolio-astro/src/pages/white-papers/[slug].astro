@@ -1,32 +1,30 @@
 ---
 // src/pages/white-papers/[slug].astro
 import Layout from '../../layouts/Layout.astro';
+import { marked } from 'marked'; 
 
-// 1. Tell Astro which dynamic pages to generate at build time
 export async function getStaticPaths() {
-    // Fetch ALL white papers from Strapi
+    // Force Strapi to deeply populate our Dynamic Zone named 'blocks'
     const response = await fetch('http://localhost:1337/api/white-papers?populate=blocks');
     const { data } = await response.json();
 
-    // Map through the array and create a route for every single slug
-    return data.map((item: any) => ({
-        // The URL will become /white-papers/whatever-the-slug-is
+    // Fallback if no papers are found yet
+    const papers = data || [];
+
+    return papers.map((item: any) => ({
         params: { slug: item.slug }, 
-        // Pass the specific white paper's data to the HTML template below
         props: { paper: item },      
     }));
 }
 
-// 2. Extract the data for this specific page
 const { paper } = Astro.props;
 ---
 
 <Layout title={`${paper.title} | Marcel.ops`}>
     
-    <!-- Dynamic Page Content -->
-    <article class="max-w-4xl mx-auto py-12">
-        <header class="mb-10">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+    <article class="max-w-4xl mx-auto py-12 px-4">
+        <header class="mb-10 pb-6 border-b border-slate-800">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
                 {paper.title}
             </h1>
             <p class="text-sky-400 font-mono text-sm">
@@ -34,10 +32,27 @@ const { paper } = Astro.props;
             </p>
         </header>
 
-        <!-- Main Body Content -->
+        <!-- Tailwind Typography Processor -->
         <div class="prose prose-invert prose-sky max-w-none text-slate-300">
-            {/* We will inject the Strapi rich text content here in the next step */}
-            <p>Placeholder for the main content...</p>
+            
+            {paper.blocks && paper.blocks.length > 0 ? (
+                paper.blocks.map((block: any) => {
+                    // Strapi v5 maps components with names like 'shared.body' or 'content.body'
+                    if (block.__component && block.__component.toLowerCase().includes('body')) {
+                        // Safe extraction checking for both upper/lowercase field schemas
+                        const textContent = block.Body || block.body || '';
+                        const parsedHTML = marked.parse(textContent);
+                        
+                        return <div set:html={parsedHTML} class="mb-6" />
+                    }
+                    
+                    // Fallback tracker for future blocks (like code blocks, graphics, etc.)
+                    return null;
+                })
+            ) : (
+                <p class="text-slate-500 italic">This white paper does not contain any content blocks yet.</p>
+            )}
+
         </div>
     </article>
 

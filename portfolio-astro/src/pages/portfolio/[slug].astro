@@ -1,12 +1,16 @@
 ---
 // src/pages/portfolio/[slug].astro
 import Layout from '../../layouts/Layout.astro';
+import { marked } from 'marked'; 
 
 export async function getStaticPaths() {
-    const response = await fetch('http://localhost:1337/api/portfolios?populate=blocks*');
+    // Fetching from the portfolios collection endpoint with block population
+    const response = await fetch('http://localhost:1337/api/portfolios?populate=blocks');
     const { data } = await response.json();
 
-    return data.map((item: any) => ({
+    const projects = data || [];
+
+    return projects.map((item: any) => ({
         params: { slug: item.slug }, 
         props: { project: item },      
     }));
@@ -17,24 +21,39 @@ const { project } = Astro.props;
 
 <Layout title={`${project.title} | Marcel.ops`}>
     
-    <article class="max-w-4xl mx-auto py-12">
-        <header class="mb-10 pb-8 border-b border-slate-800">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+    <article class="max-w-4xl mx-auto py-12 px-4">
+        <header class="mb-10 pb-6 border-b border-slate-800">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
                 {project.title}
             </h1>
             
-            {/* Optional: Add a metadata row if you have fields like 'TechStack' or 'Date' in Strapi */}
-            <div class="flex items-center gap-4 text-sm font-mono text-slate-400 mt-6">
-                <span class="bg-slate-800 px-3 py-1 rounded-md text-sky-400">
-                    Project Showcase
+            <div class="flex flex-wrap items-center gap-4 text-sm font-mono text-slate-400 mt-4">
+                <span class="bg-sky-500/10 border border-sky-500/30 px-3 py-1 rounded-md text-sky-400 font-medium">
+                    Infrastructure Case Study
                 </span>
                 <span>Published: {new Date(project.publishedAt).toLocaleDateString()}</span>
             </div>
         </header>
 
+        <!-- Tailwind Typography Processor -->
         <div class="prose prose-invert prose-sky max-w-none text-slate-300">
-            {/* The main body content will go here */}
-            <p>Project details loading...</p>
+            
+            {project.blocks && project.blocks.length > 0 ? (
+                project.blocks.map((block: any) => {
+                    // Renders the exact same structured layout text if built symmetrically
+                    if (block.__component && block.__component.toLowerCase().includes('body')) {
+                        const textContent = block.Body || block.body || '';
+                        const parsedHTML = marked.parse(textContent);
+                        
+                        return <div set:html={parsedHTML} class="mb-6" />
+                    }
+                    
+                    return null;
+                })
+            ) : (
+                <p class="text-slate-500 italic">This case study does not contain any content blocks yet.</p>
+            )}
+
         </div>
     </article>
 
