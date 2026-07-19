@@ -6,8 +6,8 @@
   },
   "options": {},
   "attributes": {
-    "Body": {
-      "type": "blocks"
+    "content": {
+      "type": "richtext"
     }
   },
   "config": {}

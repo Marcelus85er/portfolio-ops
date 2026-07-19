@@ -4,11 +4,8 @@ import Layout from '../../layouts/Layout.astro';
 import { marked } from 'marked'; 
 
 export async function getStaticPaths() {
-    // Force Strapi to deeply populate our Dynamic Zone named 'blocks'
     const response = await fetch('http://localhost:1337/api/white-papers?populate=blocks');
     const { data } = await response.json();
-
-    // Fallback if no papers are found yet
     const papers = data || [];
 
     return papers.map((item: any) => ({
@@ -32,21 +29,23 @@ const { paper } = Astro.props;
             </p>
         </header>
 
-        <!-- Tailwind Typography Processor -->
         <div class="prose prose-invert prose-sky max-w-none text-slate-300">
             
             {paper.blocks && paper.blocks.length > 0 ? (
                 paper.blocks.map((block: any) => {
-                    // Strapi v5 maps components with names like 'shared.body' or 'content.body'
+                    
+                    // Check if the current block is our Body component
                     if (block.__component && block.__component.toLowerCase().includes('body')) {
-                        // Safe extraction checking for both upper/lowercase field schemas
-                        const textContent = block.Body || block.body || '';
-                        const parsedHTML = marked.parse(textContent);
+                        // Extract the markdown string from our new 'content' field
+                        const rawMarkdown = block.content || '';
                         
+                        // Parse it into HTML
+                        const parsedHTML = marked.parse(rawMarkdown);
+                        
+                        // Render it to the screen
                         return <div set:html={parsedHTML} class="mb-6" />
                     }
                     
-                    // Fallback tracker for future blocks (like code blocks, graphics, etc.)
                     return null;
                 })
             ) : (

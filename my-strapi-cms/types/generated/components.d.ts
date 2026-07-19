@@ -31,7 +31,7 @@ export interface BlocksBody extends Struct.ComponentSchema {
     icon: 'write';
   };
   attributes: {
-    Body: Schema.Attribute.Blocks;
+    content: Schema.Attribute.RichText;
   };
 }
 
