@@ -11,6 +11,8 @@ on:
     paths: 
       - 'frontend/**'
       - '.github/workflows/**'
+workflow_dispatch:
+repository_dispatch:
 
 jobs:
   build-and-verify:
@@ -48,7 +50,7 @@ jobs:
           severity: 'CRITICAL'
 
       - name: Push Production Image
-        # Only pushes the image if this is a merge into the main branch
-        if: github.event_name == 'push'
-        run: |
-          docker push ghcr.io/${{ env.REPO_LC }}/portfolio-frontend:${{ github.sha }}
+        # Only pushes the image if this is a merge into the main branch and new webhook dispatch events
+        if: github.event_name == 'push' || github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+    run: |
+      docker push ghcr.io/${{ env.REPO_LC }}/portfolio-frontend:${{ github.sha }}
