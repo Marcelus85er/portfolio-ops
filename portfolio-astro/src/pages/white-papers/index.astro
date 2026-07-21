@@ -2,13 +2,19 @@
 // src/pages/white-papers/index.astro
 import Layout from '../../layouts/Layout.astro';
 
-// 1. Fetch ALL White Papers from Strapi
-// Notice we are targeting the plural endpoint for the Collection Type
-const response = await fetch('http://localhost:1337/api/white-papers?populate=*');
-const { data } = await response.json();
+let whitePapers = [];
 
-// 2. Ensure we have an array to map over (fallback to empty array)
-const whitePapers = data || [];
+try {
+    const STRAPI_URL = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const response = await fetch(`${STRAPI_URL}/api/white-papers?populate=*`);
+    
+    if (response.ok) {
+        const { data } = await response.json();
+        whitePapers = data || [];
+    }
+} catch (error) {
+    console.warn("Strapi white papers fetch skipped/failed (using empty list):", error);
+}
 ---
 
 <Layout title="White Papers | Marcel.ops">
@@ -26,7 +32,7 @@ const whitePapers = data || [];
     <!-- Grid Layout for the Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        <!-- 3. Map over the array to generate a card for every article -->
+        <!-- Map over the array to generate a card for every article -->
         {whitePapers.map((paper: any) => (
             <a 
                 href={`/white-papers/${paper.slug}`} 
@@ -54,7 +60,7 @@ const whitePapers = data || [];
     <!-- Empty State Fallback -->
     {whitePapers.length === 0 && (
         <div class="text-center py-12 text-slate-500 bg-slate-900/50 rounded-xl border border-dashed border-slate-700/50">
-            No white papers have been published yet.
+            No white papers have been published yet or CMS is currently offline.
         </div>
     )}
 
