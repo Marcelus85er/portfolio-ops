@@ -1,15 +1,28 @@
 ---
-// src/layouts/Layout.astro
 import '../styles/global.css';
 
 const { title = "Marcel | Cloud Engineer" } = Astro.props;
 
-// 1. Fetch the Navigation Data from Strapi
-const response = await fetch('http://localhost:1337/api/main-navigation?populate=*');
-const { data } = await response.json();
+// Fallback navigation in case Strapi is unreachable during build
+let menuItems = [
+    { label: 'About', URL: '/about' },
+    { label: 'Portfolio', URL: '/portfolio' },
+    { label: 'White Papers', URL: '/white-papers' }
+];
 
-// 2. Extract the array of links (fallback to empty array to prevent crashes)
-const menuItems = data?.Menu || [];
+try {
+    const STRAPI_URL = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    const response = await fetch(`${STRAPI_URL}/api/main-navigation?populate=*`);
+    
+    if (response.ok) {
+        const { data } = await response.json();
+        if (data?.Menu) {
+            menuItems = data.Menu;
+        }
+    }
+} catch (error) {
+    console.warn("Strapi navigation fetch skipped/failed (using default menu):", error);
+}
 ---
 
 <!DOCTYPE html>
@@ -28,7 +41,7 @@ const menuItems = data?.Menu || [];
                 <a href="/">Marcel<span class="text-blue-500">.ops</span></a>
             </div>
             
-            <!-- NEW: Dynamic Link Generation -->
+            <!-- Dynamic Link Generation -->
             <div class="flex space-x-8 text-sm font-medium">
                 {menuItems.map((item: any) => (
                     <a href={item.URL} class="text-slate-300 hover:text-white transition-colors">
