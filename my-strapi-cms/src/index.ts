@@ -8,7 +8,7 @@ export default {
     // A reusable function to ping GitHub
     const triggerGitHubBuild = async () => {
       try {
-        await fetch('https://api.github.com/repos/Marcelus85er/portfolio-ops/dispatches', {
+        const response = await fetch('https://api.github.com/repos/Marcelus85er/portfolio-ops/dispatches', {
           method: 'POST',
           headers: {
             'Accept': 'application/vnd.github.v3+json',
@@ -17,6 +17,14 @@ export default {
           },
           body: JSON.stringify({ event_type: 'strapi-publish' }) 
         });
+
+        // 👇 This intercepts GitHub's silent rejections
+        if (!response.ok) {
+          const errText = await response.text();
+          console.error(`❌ GitHub API Rejected! Status: ${response.status}. Reason: ${errText}`);
+          return;
+        }
+
         console.log('🚀 Build signal sent to GitHub!');
       } catch (error) {
         console.error('❌ Failed to send build signal:', error);
@@ -24,10 +32,8 @@ export default {
     };
 
     strapi.db.lifecycles.subscribe({
-      // Listen to both your White Papers and Portfolio collections
       models: ['api::white-paper.white-paper', 'api::portfolio.portfolio'],
 
-      // Fire when a completely new article is created and published immediately
       async afterCreate(event: any) {
         const { data } = event.params;
         if (data && data.publishedAt) {
@@ -36,10 +42,8 @@ export default {
         }
       },
 
-      // Fire when an existing article is published or unpublished
       async afterUpdate(event: any) {
         const { data } = event.params;
-        // Check if the 'publishedAt' field is actively being modified in this update
         if (data && Object.keys(data).includes('publishedAt')) {
           console.log('Publish/Unpublish event detected on update!');
           await triggerGitHubBuild();
