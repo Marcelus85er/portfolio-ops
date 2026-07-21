@@ -4,20 +4,30 @@ import Layout from '../../layouts/Layout.astro';
 import { marked } from 'marked'; 
 
 export async function getStaticPaths() {
-    const response = await fetch('http://localhost:1337/api/white-papers?populate=blocks');
-    const { data } = await response.json();
-    const papers = data || [];
+    // Fall back to environment variables or local host
+    const STRAPI_URL = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    
+    try {
+        const response = await fetch(`${STRAPI_URL}/api/white-papers?populate=blocks`);
+        if (!response.ok) return [];
+        
+        const { data } = await response.json();
+        const papers = data || [];
 
-    return papers.map((item: any) => ({
-        params: { slug: item.slug }, 
-        props: { paper: item },      
-    }));
+        return papers.map((item: any) => ({
+            params: { slug: item.slug }, 
+            props: { paper: item },      
+        }));
+    } catch (error) {
+        console.error("Failed to fetch white papers for static paths:", error);
+        return [];
+    }
 }
 
 const { paper } = Astro.props;
 ---
 
-<Layout title={`${paper.title} | Marcel.ops`}>
+<Layout title={`${paper?.title || 'White Paper'} | Marcel.ops`}>
     
     <article class="max-w-4xl mx-auto py-12 px-4">
         <header class="mb-10 pb-6 border-b border-slate-800">
@@ -32,22 +42,22 @@ const { paper } = Astro.props;
         <div class="prose prose-invert prose-sky max-w-none text-slate-300">
             
             {paper.blocks && paper.blocks.length > 0 ? (
-                paper.blocks.map((block: any) => {
+                await Promise.all(paper.blocks.map(async (block: any) => {
                     
                     // Check if the current block is our Body component
                     if (block.__component && block.__component.toLowerCase().includes('body')) {
                         // Extract the markdown string from our new 'content' field
                         const rawMarkdown = block.content || '';
                         
-                        // Parse it into HTML
-                        const parsedHTML = marked.parse(rawMarkdown);
+                        // Parse it into HTML safely
+                        const parsedHTML = await marked.parse(rawMarkdown);
                         
                         // Render it to the screen
-                        return <div set:html={parsedHTML} class="mb-6" />
+                        return <div set:html={parsedHTML} class="mb-6" />;
                     }
                     
                     return null;
-                })
+                }))
             ) : (
                 <p class="text-slate-500 italic">This white paper does not contain any content blocks yet.</p>
             )}

@@ -4,22 +4,30 @@ import Layout from '../../layouts/Layout.astro';
 import { marked } from 'marked'; 
 
 export async function getStaticPaths() {
-    // Fetching from the portfolios collection endpoint with block population
-    const response = await fetch('http://localhost:1337/api/portfolios?populate=blocks');
-    const { data } = await response.json();
+    // Fall back to environment variables or local host
+    const STRAPI_URL = import.meta.env.STRAPI_URL || 'http://localhost:1337';
 
-    const projects = data || [];
+    try {
+        const response = await fetch(`${STRAPI_URL}/api/portfolios?populate=blocks`);
+        if (!response.ok) return [];
 
-    return projects.map((item: any) => ({
-        params: { slug: item.slug }, 
-        props: { project: item },      
-    }));
+        const { data } = await response.json();
+        const projects = data || [];
+
+        return projects.map((item: any) => ({
+            params: { slug: item.slug }, 
+            props: { project: item },      
+        }));
+    } catch (error) {
+        console.error("Failed to fetch portfolio projects for static paths:", error);
+        return [];
+    }
 }
 
 const { project } = Astro.props;
 ---
 
-<Layout title={`${project.title} | Marcel.ops`}>
+<Layout title={`${project?.title || 'Case Study'} | Marcel.ops`}>
     
     <article class="max-w-4xl mx-auto py-12 px-4">
         <header class="mb-10 pb-6 border-b border-slate-800">
@@ -39,7 +47,7 @@ const { project } = Astro.props;
         <div class="prose prose-invert prose-sky max-w-none text-slate-300">
             
             {project.blocks && project.blocks.length > 0 ? (
-                project.blocks.map((block: any) => {
+                await Promise.all(project.blocks.map(async (block: any) => {
                     
                     // Check if the current block is our Body component
                     if (block.__component && block.__component.toLowerCase().includes('body')) {
@@ -47,15 +55,15 @@ const { project } = Astro.props;
                         // Extract the markdown string from our new 'content' field
                         const rawMarkdown = block.content || '';
                         
-                        // Parse it into HTML
-                        const parsedHTML = marked.parse(rawMarkdown);
+                        // Parse it into HTML safely
+                        const parsedHTML = await marked.parse(rawMarkdown);
                         
                         // Render it to the screen
-                        return <div set:html={parsedHTML} class="mb-6" />
+                        return <div set:html={parsedHTML} class="mb-6" />;
                     }
                     
                     return null;
-                })
+                }))
             ) : (
                 <p class="text-slate-500 italic">This case study does not contain any content blocks yet.</p>
             )}
