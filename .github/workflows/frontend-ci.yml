@@ -39,7 +39,7 @@ jobs:
 
       - name: Build Local Image
         run: |
-          docker build -t ghcr.io/${{ env.REPO_LC }}/portfolio-frontend:${{ github.sha }} ./frontend
+          docker build -t ghcr.io/${{ env.REPO_LC }}/portfolio-frontend:${{ github.sha }} ./portfolio-astro
 
       - name: Scan Image for Vulnerabilities (Trivy)
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
