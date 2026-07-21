@@ -27,16 +27,23 @@ export default {
       // Listen to both your White Papers and Portfolio collections
       models: ['api::white-paper.white-paper', 'api::portfolio.portfolio'],
 
-      // Trigger strictly on Publish
-      async afterPublish(event) {
-        console.log('Publish event detected!');
-        await triggerGitHubBuild();
+      // Fire when a completely new article is created and published immediately
+      async afterCreate(event: any) {
+        const { data } = event.params;
+        if (data && data.publishedAt) {
+          console.log('Publish event detected on create!');
+          await triggerGitHubBuild();
+        }
       },
 
-      // Trigger strictly on Unpublish
-      async afterUnpublish(event) {
-        console.log('Unpublish event detected!');
-        await triggerGitHubBuild();
+      // Fire when an existing article is published or unpublished
+      async afterUpdate(event: any) {
+        const { data } = event.params;
+        // Check if the 'publishedAt' field is actively being modified in this update
+        if (data && Object.keys(data).includes('publishedAt')) {
+          console.log('Publish/Unpublish event detected on update!');
+          await triggerGitHubBuild();
+        }
       }
     });
   },
