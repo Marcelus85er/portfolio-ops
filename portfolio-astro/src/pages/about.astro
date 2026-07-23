@@ -23,14 +23,14 @@ const bio = aboutData?.bio || "Building resilient, cloud-native infrastructure a
 
 // Helper function to resolve media URLs across Strapi v4/v5 & MinIO/S3
 function getImageUrl(mediaField: any): string {
-    if (!mediaField) return "/marcel-profile.jpg"; // Fallback image
+    if (!mediaField) return "/marcel-profile.webp"; // Fallback image
     
     // Extract raw object or array item
     const rawObj = Array.isArray(mediaField) ? mediaField[0] : mediaField;
     const mediaObj = rawObj?.data?.attributes || rawObj?.attributes || rawObj;
     const url = mediaObj?.url;
 
-    if (!url) return "/marcel-profile.jpg";
+    if (!url) return "/marcel-profile.webp";
 
     // If it's an absolute URL (e.g., MinIO / S3 / Cloud storage), return directly
     if (url.startsWith('http://') || url.startsWith('https://')) {
