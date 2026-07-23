@@ -10,26 +10,39 @@ try {
     
     if (response.ok) {
         const json = await response.json();
-        // Handles both Strapi v4 (json.data.attributes) and Strapi v5 (json.data)
+        // Support both Strapi v5 (json.data) and Strapi v4 (json.data.attributes)
         aboutData = json?.data?.attributes || json?.data || null;
     }
 } catch (error) {
     console.warn("Strapi about page fetch skipped/failed:", error);
 }
 
-// Extract content fields with safe fallbacks
+// Extract content fields
 const title = aboutData?.title || "About the Engineer";
 const bio = aboutData?.bio || "Building resilient, cloud-native infrastructure and AI-driven automation.";
 
-// Extract profile image URL cleanly
-let profileImageUrl = "/marcel-profile.jpg"; // Fallback local image
+// Helper function to resolve media URLs across Strapi v4/v5 & MinIO/S3
+function getImageUrl(mediaField: any): string {
+    if (!mediaField) return "/marcel-profile.jpg"; // Fallback image
+    
+    // Extract raw object or array item
+    const rawObj = Array.isArray(mediaField) ? mediaField[0] : mediaField;
+    const mediaObj = rawObj?.data?.attributes || rawObj?.attributes || rawObj;
+    const url = mediaObj?.url;
 
-const imageData = aboutData?.profileImage?.data?.attributes || aboutData?.profileImage;
-if (imageData?.url) {
-    profileImageUrl = imageData.url.startsWith('http') 
-        ? imageData.url 
-        : `${import.meta.env.STRAPI_URL || 'http://localhost:1337'}${imageData.url}`;
+    if (!url) return "/marcel-profile.jpg";
+
+    // If it's an absolute URL (e.g., MinIO / S3 / Cloud storage), return directly
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+    }
+
+    // Otherwise, prepend the local/configured Strapi base URL
+    const baseUrl = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    return `${baseUrl}${url}`;
 }
+
+const profileImageUrl = getImageUrl(aboutData?.profileImage);
 ---
 
 <Layout title="About | Marcel Avila">
