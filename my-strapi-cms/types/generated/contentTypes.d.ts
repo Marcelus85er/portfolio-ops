@@ -498,6 +498,35 @@ export interface ApiApiPortalApiPortal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiContactContact extends Struct.SingleTypeSchema {
+  collectionName: 'contacts';
+  info: {
+    displayName: 'Contact';
+    pluralName: 'contacts';
+    singularName: 'contact';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::contact.contact'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiFooterNavigationFooterNavigation
   extends Struct.SingleTypeSchema {
   collectionName: 'footer_navigations';
@@ -1227,6 +1256,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::about.about': ApiAboutAbout;
       'api::api-portal.api-portal': ApiApiPortalApiPortal;
+      'api::contact.contact': ApiContactContact;
       'api::footer-navigation.footer-navigation': ApiFooterNavigationFooterNavigation;
       'api::homepage.homepage': ApiHomepageHomepage;
       'api::main-navigation.main-navigation': ApiMainNavigationMainNavigation;
