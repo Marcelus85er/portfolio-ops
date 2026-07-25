@@ -3,25 +3,36 @@ import '../styles/global.css';
 
 const { title = "Marcel | Cloud Engineer" } = Astro.props;
 
-// Fallback navigation in case Strapi is unreachable during build
+// Fallback navigation in case Strapi is unreachable
 let menuItems = [
     { label: 'About', URL: '/about' },
     { label: 'Portfolio', URL: '/portfolio' },
     { label: 'White Papers', URL: '/white-papers' }
 ];
 
+let footerLinks = [];
+
 try {
     const STRAPI_URL = import.meta.env.STRAPI_URL || 'http://localhost:1337';
-    const response = await fetch(`${STRAPI_URL}/api/main-navigation?populate=*`);
     
-    if (response.ok) {
-        const { data } = await response.json();
+    // Fetch Main Navigation
+    const navResponse = await fetch(`${STRAPI_URL}/api/main-navigation?populate=*`);
+    if (navResponse.ok) {
+        const { data } = await navResponse.json();
         if (data?.Menu) {
             menuItems = data.Menu;
         }
     }
+
+    // Fetch Footer Navigation (THIS is what was missing in the execution!)
+    const footerResponse = await fetch(`${STRAPI_URL}/api/footer-navigation?populate=footerMenu`);
+    if (footerResponse.ok) {
+        const json = await footerResponse.json();
+        const data = json?.data?.attributes || json?.data || {};
+        footerLinks = data?.footerMenu || [];
+    }
 } catch (error) {
-    console.warn("Strapi navigation fetch skipped/failed (using default menu):", error);
+    console.warn("Strapi navigation fetch skipped/failed:", error);
 }
 ---
 
@@ -60,8 +71,24 @@ try {
 
     <!-- Global Footer -->
     <footer class="border-t border-slate-800 py-8 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 text-center text-slate-500 text-sm">
-            <p>&copy; 2026 Marcel. Cloud Infrastructure & DevOps Portfolio.</p>
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-sm">
+            <p>&copy; {new Date().getFullYear()} Marcel. Cloud Infrastructure & DevOps Portfolio.</p>
+            
+            <!-- Dynamic Footer Links -->
+            {footerLinks.length > 0 && (
+                <ul class="flex gap-6 font-medium">
+                    {footerLinks.map((link: any) => (
+                        <li>
+                            <a 
+                                href={link.URL} 
+                                class="hover:text-blue-400 transition-colors"
+                            >
+                                {link.label}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     </footer>
 
