@@ -1,9 +1,9 @@
 {
   "kind": "singleType",
-  "collectionName": "contacts",
+  "collectionName": "abouts",
   "info": {
-    "singularName": "contact",
-    "pluralName": "contacts",
+    "singularName": "about",
+    "pluralName": "abouts",
     "displayName": "About"
   },
   "options": {
