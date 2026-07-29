@@ -14,9 +14,9 @@ spec:
         backend:
           service:
             name: portfolio-backend
-            port: 
+            port:
               number: 1337
-              
+
   # 2. Main Domain -> Routes to Astro Frontend
   - host: marcel-avila.com
     http:
@@ -26,5 +26,5 @@ spec:
         backend:
           service:
             name: portfolio-frontend-svc
-            port: 
+            port:
               number: 80
