@@ -18,36 +18,55 @@ spec:
       - name: backend
         image: ghcr.io/marcelus85er/portfolio-ops/portfolio-backend:1.0.0-beta.1
         ports:
-        - containerPort: 3000
+        - containerPort: 1337 # Changed from 3000 to match Strapi default
         env:
-        # Standard Environment Variables
-        - name: DB_HOST
+        # Strapi Database Variables
+        - name: DATABASE_CLIENT
           value: "postgres"
-        - name: S3_ENDPOINT
-          value: "http://minio:9000"
-        - name: S3_PUBLIC_URL
-          value: "http://localhost:9001"
-        # Secret Environment Variables (Injected from K8s Vault)
-        - name: DB_USER
+        - name: DATABASE_HOST
+          value: "postgres" # This fixes the 127.0.0.1 error
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_NAME
+          value: "postgres" # Default DB name; update if yours differs
+        - name: DATABASE_USERNAME
           valueFrom:
             secretKeyRef:
               name: postgres-secret
               key: POSTGRES_USER
-        - name: DB_PASSWORD
+        - name: DATABASE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: postgres-secret
               key: POSTGRES_PASSWORD
+
+        # Strapi Required Production Secrets
+        - name: APP_KEYS
+          value: "yourRandomKey1,yourRandomKey2"
+        - name: API_TOKEN_SALT
+          value: "yourRandomSalt1"
+        - name: ADMIN_JWT_SECRET
+          value: "yourRandomJwtSecret1"
+        - name: TRANSFER_TOKEN_SALT
+          value: "yourRandomSalt2"
+        - name: JWT_SECRET
+          value: "yourRandomJwtSecret2"
+
+        # MinIO / S3 Variables
+        - name: S3_ENDPOINT
+          value: "http://minio:9000"
+        - name: S3_PUBLIC_URL
+          value: "http://localhost:9001"
         - name: S3_ACCESS_KEY
           valueFrom:
             secretKeyRef:
               name: minio-secret
-              key: MINIO_ROOT_USER    # FIXED THIS KEY
+              key: MINIO_ROOT_USER
         - name: S3_SECRET_KEY
           valueFrom:
             secretKeyRef:
               name: minio-secret
-              key: MINIO_ROOT_PASSWORD # FIXED THIS KEY
+              key: MINIO_ROOT_PASSWORD
 ---
 apiVersion: v1
 kind: Service
@@ -58,5 +77,5 @@ spec:
     app: portfolio-backend
   ports:
     - protocol: TCP
-      port: 3000
-      targetPort: 3000
+      port: 1337
+      targetPort: 1337
