@@ -7,10 +7,48 @@ spec:
   rules:
   - http:
       paths:
+      # --- STRAPI BACKEND PATHS ---
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: portfolio-backend
+            port: 
+              number: 1337
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: portfolio-backend
+            port: 
+              number: 1337
+      - path: /content-manager
+        pathType: Prefix
+        backend:
+          service:
+            name: portfolio-backend
+            port: 
+              number: 1337
+      - path: /content-type-builder
+        pathType: Prefix
+        backend:
+          service:
+            name: portfolio-backend
+            port: 
+              number: 1337
+      - path: /upload
+        pathType: Prefix
+        backend:
+          service:
+            name: portfolio-backend
+            port: 
+              number: 1337
+      
+      # --- ASTRO FRONTEND (CATCH-ALL MUST BE LAST) ---
       - path: /
         pathType: Prefix
         backend:
           service:
             name: portfolio-frontend-svc
-            port:
+            port: 
               number: 80
