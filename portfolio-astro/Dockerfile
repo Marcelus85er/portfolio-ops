@@ -12,6 +12,10 @@ RUN npm install
 # Copy the rest of your Astro project files
 COPY . .
 
+# Pass the API URL into the build environment
+ARG STRAPI_URL
+ENV STRAPI_URL=$STRAPI_URL
+
 # Run the Astro build command (compiles static HTML into /app/dist)
 RUN npm run build
 
