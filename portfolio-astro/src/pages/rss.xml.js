@@ -1,11 +1,9 @@
-// src/pages/rss.xml.js
 import rss from '@astrojs/rss';
 
 export async function GET(context) {
     let feedItems = [];
 
     try {
-        // Pulls the URL from the build environment we just fixed
         const STRAPI_URL = import.meta.env.STRAPI_URL || 'http://localhost:1337';
         
         // 1. Fetch Portfolios
@@ -14,8 +12,6 @@ export async function GET(context) {
         if (portfolioRes.ok) {
             const json = await portfolioRes.json();
             portfolios = json?.data || [];
-        } else {
-            console.warn(`Portfolio fetch failed: ${portfolioRes.status}`);
         }
 
         // 2. Fetch White Papers
@@ -24,30 +20,28 @@ export async function GET(context) {
         if (whitePaperRes.ok) {
             const json = await whitePaperRes.json();
             whitePapers = json?.data || [];
-        } else {
-            console.warn(`White Paper fetch failed: ${whitePaperRes.status}`);
         }
 
-        // 3. Map Portfolios to RSS format
+        // 3. Map Portfolios using the new standard schema
         const portfolioItems = portfolios.map((doc) => {
             const attrs = doc.attributes || doc;
             return {
-                title: attrs.title,
-                description: attrs.description || 'Infrastructure project overview',
+                title: attrs.title, // Cleaned up fallback
+                // Now targets your new 'excerpt' field, falls back to 'metaDescription', then static string
+                description: attrs.excerpt || attrs.seo?.metaDescription || 'Infrastructure project overview',
                 link: `/portfolio/${attrs.slug || doc.id}`, 
-                // Checks for Strapi default dates
-                pubDate: new Date(attrs.publishedAt || attrs.createdAt),
+                // Prioritizes your custom publishDate field
+                pubDate: new Date(attrs.publishDate || attrs.publishedAt || attrs.createdAt),
             };
         });
 
-        // 4. Map White Papers to RSS format
+        // 4. Map White Papers using the new standard schema
         const whitePaperItems = whitePapers.map((doc) => {
             const attrs = doc.attributes || doc;
             return {
-                title: attrs.title || attrs.Title, // Accounts for capitalization variations
-                description: attrs.description || 'Deep dive into cloud architecture and DevOps.',
-                link: `/white-papers/${attrs.slug || attrs.Slug || doc.id}`, 
-                // Checks for your custom publishDate field first, then defaults
+                title: attrs.title, // Cleaned up fallback
+                description: attrs.excerpt || attrs.seo?.metaDescription || 'Deep dive into cloud architecture and DevOps.',
+                link: `/white-papers/${attrs.slug || doc.id}`, 
                 pubDate: new Date(attrs.publishDate || attrs.publishedAt || attrs.createdAt),
             };
         });
@@ -64,7 +58,6 @@ export async function GET(context) {
     return rss({
         title: 'Marcel.ops | Cloud Infrastructure & DevOps',
         description: 'Building resilient, cloud-native infrastructure and AI-driven automation.',
-        // Fixed the fallback domain to match your live site
         site: context.site || 'https://marcel-avila.com',
         items: feedItems,
         customData: `<language>en-us</language>`,
