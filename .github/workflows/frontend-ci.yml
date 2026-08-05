@@ -39,8 +39,12 @@ jobs:
 
       - name: Build Local Image
         run: |
-          docker build -t ghcr.io/${{ env.REPO_LC }}/portfolio-frontend:${{ github.sha }} ./portfolio-astro
+          docker build \
+            --build-arg STRAPI_URL=https://api.marcel-avila.com \
+            -t ghcr.io/${{ env.REPO_LC }}/portfolio-frontend:${{ github.sha }} \
+            ./portfolio-astro
 
+            
       - name: Scan Image for Vulnerabilities (Trivy)
         uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
         with:
