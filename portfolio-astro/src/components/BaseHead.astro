@@ -2,20 +2,30 @@
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
 import '../styles/global.css';
-import type { ImageMetadata } from 'astro';
-import FallbackImage from '../assets/blog-placeholder-1.jpg';
 import { SITE_TITLE } from '../consts';
 import { Font } from 'astro:assets';
 
 interface Props {
 	title: string;
 	description: string;
-	image?: ImageMetadata;
+	// 1. Change from ImageMetadata to string to accept Strapi URLs
+	image?: string; 
 }
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
-const { title, description, image = FallbackImage } = Astro.props;
+// 2. Set a static string fallback instead of importing a local ImageMetadata object
+const DEFAULT_IMAGE = new URL('/blog-placeholder-1.jpg', Astro.url).href;
+const { title, description, image = DEFAULT_IMAGE } = Astro.props;
+
+// 3. Helper to ensure Strapi images resolve to absolute URLs for OpenGraph
+function resolveImageUrl(imgUrl: string) {
+    if (imgUrl.startsWith('http')) return imgUrl;
+    const STRAPI_URL = import.meta.env.STRAPI_URL || 'http://localhost:1337';
+    return `${STRAPI_URL}${imgUrl}`;
+}
+
+const ogImageUrl = image !== DEFAULT_IMAGE ? resolveImageUrl(image) : image;
 ---
 
 <!-- Global Metadata -->
@@ -46,7 +56,11 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta property="og:url" content={Astro.url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image.src, Astro.url)} />
+<!-- 4. Inject the safely resolved absolute URL -->
+<meta property="og:image" content={ogImageUrl} />
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImageUrl} />

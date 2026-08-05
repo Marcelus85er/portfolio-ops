@@ -1,7 +1,22 @@
 ---
-import '../styles/global.css';
+// Import the newly updated BaseHead component
+import BaseHead from '../components/BaseHead.astro';
 
-const { title = "Marcel | Cloud Engineer" } = Astro.props;
+// We removed the duplicate global.css import here since BaseHead already handles it.
+
+// Explicitly define the props we expect to receive from our pages
+interface Props {
+    title?: string;
+    description?: string;
+    image?: string;
+}
+
+const { 
+    title = "Marcel.ops | Cloud Engineer",
+    // Provide a solid fallback description for pages that don't pass one
+    description = "Building resilient, cloud-native infrastructure and AI-driven automation.",
+    image 
+} = Astro.props;
 
 // Fallback navigation in case Strapi is unreachable
 let menuItems = [
@@ -24,7 +39,7 @@ try {
         }
     }
 
-    // Fetch Footer Navigation (THIS is what was missing in the execution!)
+    // Fetch Footer Navigation
     const footerResponse = await fetch(`${STRAPI_URL}/api/footer-navigation?populate=footerMenu`);
     if (footerResponse.ok) {
         const json = await footerResponse.json();
@@ -39,9 +54,11 @@ try {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title}</title>
+    <!-- 
+      Inject BaseHead here! It will automatically generate your Title, 
+      Meta Description, Canonical URLs, and OpenGraph/Twitter Cards 
+    -->
+    <BaseHead title={title} description={description} image={image} />
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen flex flex-col font-sans">
     
