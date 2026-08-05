@@ -1,14 +1,15 @@
 ---
 // src/pages/portfolio/[slug].astro
 import Layout from '../../layouts/Layout.astro';
+import JSONLD from '../../components/JSONLD.astro';
 import { marked } from 'marked'; 
 
 export async function getStaticPaths() {
-    // Fall back to environment variables or local host
     const STRAPI_URL = import.meta.env.STRAPI_URL || 'http://localhost:1337';
 
     try {
-        const response = await fetch(`${STRAPI_URL}/api/portfolios?populate=blocks`);
+        // Changed to populate=* to fetch author, publisher, tags, and coverImage
+        const response = await fetch(`${STRAPI_URL}/api/portfolios?populate=*`);
         if (!response.ok) return [];
 
         const { data } = await response.json();
@@ -29,6 +30,18 @@ const { project } = Astro.props;
 
 <Layout title={`${project?.title || 'Case Study'} | Marcel.ops`}>
     
+    <!-- Injects the Schema.org JSON directly into the DOM -->
+    <JSONLD 
+        schemaType="CreativeWork"
+        title={project.title}
+        excerpt={project.excerpt}
+        coverImage={project.coverImage}
+        publishDate={project.publishDate || project.publishedAt}
+        author={project.author}
+        publisher={project.publisher}
+        tags={project.tags}
+    />
+
     <article class="max-w-4xl mx-auto py-12 px-4">
         <header class="mb-10 pb-6 border-b border-slate-800">
             <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
@@ -39,7 +52,8 @@ const { project } = Astro.props;
                 <span class="bg-sky-500/10 border border-sky-500/30 px-3 py-1 rounded-md text-sky-400 font-medium">
                     Infrastructure Case Study
                 </span>
-                <span>Published: {new Date(project.publishedAt).toLocaleDateString()}</span>
+                <!-- Updated to prioritize your new custom publishDate field -->
+                <span>Published: {new Date(project.publishDate || project.publishedAt).toLocaleDateString()}</span>
             </div>
         </header>
 
@@ -49,16 +63,9 @@ const { project } = Astro.props;
             {project.blocks && project.blocks.length > 0 ? (
                 await Promise.all(project.blocks.map(async (block: any) => {
                     
-                    // Check if the current block is our Body component
                     if (block.__component && block.__component.toLowerCase().includes('body')) {
-                        
-                        // Extract the markdown string from our new 'content' field
                         const rawMarkdown = block.content || '';
-                        
-                        // Parse it into HTML safely
                         const parsedHTML = await marked.parse(rawMarkdown);
-                        
-                        // Render it to the screen
                         return <div set:html={parsedHTML} class="mb-6" />;
                     }
                     

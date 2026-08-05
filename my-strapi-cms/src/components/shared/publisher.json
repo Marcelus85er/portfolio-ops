@@ -1,0 +1,26 @@
+{
+  "collectionName": "components_shared_publishers",
+  "info": {
+    "displayName": "publisher"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "default": "Marcel Avila Esquivel",
+      "required": true
+    },
+    "type": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "Person",
+        "Organization"
+      ]
+    },
+    "url": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

@@ -26,6 +26,11 @@
         "videos",
         "audios"
       ]
+    },
+    "seo": {
+      "type": "component",
+      "component": "shared.seo",
+      "repeatable": false
     }
   }
 }

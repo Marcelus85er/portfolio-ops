@@ -1,14 +1,15 @@
 ---
 // src/pages/white-papers/[slug].astro
 import Layout from '../../layouts/Layout.astro';
+import JSONLD from '../../components/JSONLD.astro';
 import { marked } from 'marked'; 
 
 export async function getStaticPaths() {
-    // Fall back to environment variables or local host
     const STRAPI_URL = import.meta.env.STRAPI_URL || 'http://localhost:1337';
     
     try {
-        const response = await fetch(`${STRAPI_URL}/api/white-papers?populate=blocks`);
+        // Changed to populate=* to fetch all SEO and entity fields
+        const response = await fetch(`${STRAPI_URL}/api/white-papers?populate=*`);
         if (!response.ok) return [];
         
         const { data } = await response.json();
@@ -29,13 +30,26 @@ const { paper } = Astro.props;
 
 <Layout title={`${paper?.title || 'White Paper'} | Marcel.ops`}>
     
+    <!-- Injects the Schema.org JSON directly into the DOM -->
+    <JSONLD 
+        schemaType="TechArticle"
+        title={paper.title}
+        excerpt={paper.excerpt}
+        coverImage={paper.coverImage}
+        publishDate={paper.publishDate || paper.publishedAt}
+        author={paper.author}
+        publisher={paper.publisher}
+        tags={paper.tags}
+    />
+
     <article class="max-w-4xl mx-auto py-12 px-4">
         <header class="mb-10 pb-6 border-b border-slate-800">
             <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">
                 {paper.title}
             </h1>
             <p class="text-sky-400 font-mono text-sm">
-                Published: {new Date(paper.publishedAt).toLocaleDateString()}
+                <!-- Updated to prioritize your new custom publishDate field -->
+                Published: {new Date(paper.publishDate || paper.publishedAt).toLocaleDateString()}
             </p>
         </header>
 
@@ -44,15 +58,9 @@ const { paper } = Astro.props;
             {paper.blocks && paper.blocks.length > 0 ? (
                 await Promise.all(paper.blocks.map(async (block: any) => {
                     
-                    // Check if the current block is our Body component
                     if (block.__component && block.__component.toLowerCase().includes('body')) {
-                        // Extract the markdown string from our new 'content' field
                         const rawMarkdown = block.content || '';
-                        
-                        // Parse it into HTML safely
                         const parsedHTML = await marked.parse(rawMarkdown);
-                        
-                        // Render it to the screen
                         return <div set:html={parsedHTML} class="mb-6" />;
                     }
                     

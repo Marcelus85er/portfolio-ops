@@ -131,6 +131,21 @@ export interface BlocksVideoEmbed extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedAuthor extends Struct.ComponentSchema {
+  collectionName: 'components_shared_authors';
+  info: {
+    displayName: 'author';
+  };
+  attributes: {
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Marcel Avila Esquivel'>;
+    type: Schema.Attribute.Enumeration<['Person', 'Organization']> &
+      Schema.Attribute.Required;
+    url: Schema.Attribute.String;
+  };
+}
+
 export interface SharedFooterNavigation extends Struct.ComponentSchema {
   collectionName: 'components_shared_footer_navigations';
   info: {
@@ -139,6 +154,21 @@ export interface SharedFooterNavigation extends Struct.ComponentSchema {
   attributes: {
     label: Schema.Attribute.String;
     URL: Schema.Attribute.String;
+  };
+}
+
+export interface SharedPublisher extends Struct.ComponentSchema {
+  collectionName: 'components_shared_publishers';
+  info: {
+    displayName: 'publisher';
+  };
+  attributes: {
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'Marcel Avila Esquivel'>;
+    type: Schema.Attribute.Enumeration<['Person', 'Organization']> &
+      Schema.Attribute.Required;
+    url: Schema.Attribute.String;
   };
 }
 
@@ -157,6 +187,16 @@ export interface SharedSeo extends Struct.ComponentSchema {
   };
 }
 
+export interface SharedTag extends Struct.ComponentSchema {
+  collectionName: 'components_shared_tags';
+  info: {
+    displayName: 'tag';
+  };
+  attributes: {
+    label: Schema.Attribute.String;
+  };
+}
+
 declare module '@strapi/strapi' {
   export namespace Public {
     export interface ComponentSchemas {
@@ -170,8 +210,11 @@ declare module '@strapi/strapi' {
       'blocks.lottie-banner': BlocksLottieBanner;
       'blocks.menu': BlocksMenu;
       'blocks.video-embed': BlocksVideoEmbed;
+      'shared.author': SharedAuthor;
       'shared.footer-navigation': SharedFooterNavigation;
+      'shared.publisher': SharedPublisher;
       'shared.seo': SharedSeo;
+      'shared.tag': SharedTag;
     }
   }
 }

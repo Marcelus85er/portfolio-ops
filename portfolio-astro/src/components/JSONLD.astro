@@ -1,0 +1,61 @@
+---
+/**
+ * @file src/components/JSONLD.astro
+ * @description Generates and injects a Schema.org JSON-LD script for SEO and AI crawlers.
+ * Maps standardized Strapi API responses to Schema.org properties.
+ * 
+ * @param {string} title - The article or portfolio headline.
+ * @param {string} publishDate - ISO 8601 formatted publication date.
+ * @param {string} [schemaType="Article"] - The Schema.org type (e.g., "TechArticle", "CreativeWork").
+ * @param {string} [excerpt] - A short summary of the content used for the description.
+ * @param {Object} [coverImage] - Strapi media object containing the image URL.
+ * @param {Object} [author] - Strapi nested component { type, name, url }.
+ * @param {Object} [publisher] - Strapi nested component { type, name, url }.
+ * @param {Array} [tags] - Array of Strapi tag components [{ label: string }].
+ */
+
+const { 
+  title, 
+  excerpt, 
+  coverImage, 
+  publishDate, 
+  author, 
+  publisher, 
+  tags, 
+  schemaType = "Article" 
+} = Astro.props;
+
+// Construct the core Schema.org object
+const schema = {
+  "@context": "https://schema.org",
+  "@type": schemaType,
+  "headline": title,
+  "description": excerpt || "Deep dive into cloud architecture and DevOps.",
+  "image": coverImage?.url || "https://marcel-avila.com/default-cover.jpg",
+  "datePublished": publishDate,
+  
+  // Conditionally map the author entity if provided by the API payload
+  "author": author ? {
+    "@type": author.type,
+    "name": author.name,
+    "url": author.url
+  } : undefined,
+  
+  // Conditionally map the publisher entity if provided by the API payload
+  "publisher": publisher ? {
+    "@type": publisher.type,
+    "name": publisher.name,
+    "url": publisher.url
+  } : undefined,
+
+  // Transform the array of tag objects into a single comma-separated string for the 'keywords' property
+  "keywords": tags && Array.isArray(tags) ? tags.map(tag => tag.label).join(", ") : undefined
+};
+---
+
+<!-- 
+  Serialize the JavaScript object to JSON and inject it directly into the DOM.
+  Using set:html bypasses Astro's default HTML sanitization, which is necessary 
+  to render valid, unescaped JSON within a script tag.
+-->
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

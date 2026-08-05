@@ -11,11 +11,16 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "body": {
+    "blocks": {
       "type": "dynamiczone",
       "components": [
         "blocks.body"
       ]
+    },
+    "seo": {
+      "type": "component",
+      "component": "shared.seo",
+      "repeatable": false
     }
   }
 }
