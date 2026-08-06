@@ -18,7 +18,7 @@ spec:
       - name: backend
         image: ghcr.io/marcelus85er/portfolio-ops/portfolio-backend:1.0.0-beta.2
         ports:
-        - containerPort: 1337 # Changed from 3000 to match Strapi default
+        - containerPort: 3000 
         env:
         # Strapi Database Variables
         - name: DATABASE_CLIENT
