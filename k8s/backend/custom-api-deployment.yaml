@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portfolio-custom-api
+  labels:
+    app: portfolio-custom-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: portfolio-custom-api
+  template:
+    metadata:
+      labels:
+        app: portfolio-custom-api
+    spec:
+      containers:
+      - name: express-api
+        image: ghcr.io/marcelus85er/portfolio-ops/portfolio-custom-api:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: "3000"
+        # MinIO / S3 Variables
+        - name: S3_ENDPOINT
+          value: "http://minio:9000"
+        - name: S3_PUBLIC_URL
+          value: "http://localhost:9001"
+        - name: S3_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_ROOT_USER
+        - name: S3_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: minio-secret
+              key: MINIO_ROOT_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: portfolio-custom-api
+spec:
+  selector:
+    app: portfolio-custom-api
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000

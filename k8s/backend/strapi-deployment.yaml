@@ -1,31 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: portfolio-backend
+  name: portfolio-strapi
   labels:
-    app: portfolio-backend
+    app: portfolio-strapi
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: portfolio-backend
+      app: portfolio-strapi
   template:
     metadata:
       labels:
-        app: portfolio-backend
+        app: portfolio-strapi
     spec:
       containers:
-      - name: backend
-        image: ghcr.io/marcelus85er/portfolio-ops/portfolio-backend:1.0.0-beta.2
+      - name: strapi
+        image: ghcr.io/marcelus85er/portfolio-ops/portfolio-strapi:latest
         ports:
-        - containerPort: 1337 
+        - containerPort: 1337
         env:
-        # Force Strapi to run on 1337 and bind to all internal IPs
         - name: PORT
           value: "1337"
         - name: HOST
           value: "0.0.0.0"
-
         # Strapi Database Variables
         - name: DATABASE_CLIENT
           value: "postgres"
@@ -57,30 +55,14 @@ spec:
           value: "yourRandomSalt2"
         - name: JWT_SECRET
           value: "yourRandomJwtSecret2"
-
-        # MinIO / S3 Variables
-        - name: S3_ENDPOINT
-          value: "http://minio:9000"
-        - name: S3_PUBLIC_URL
-          value: "http://localhost:9001"
-        - name: S3_ACCESS_KEY
-          valueFrom:
-            secretKeyRef:
-              name: minio-secret
-              key: MINIO_ROOT_USER
-        - name: S3_SECRET_KEY
-          valueFrom:
-            secretKeyRef:
-              name: minio-secret
-              key: MINIO_ROOT_PASSWORD
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: portfolio-backend
+  name: portfolio-strapi
 spec:
   selector:
-    app: portfolio-backend
+    app: portfolio-strapi
   ports:
     - protocol: TCP
       port: 1337
