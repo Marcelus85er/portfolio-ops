@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: express-api
-        image: ghcr.io/marcelus85er/portfolio-ops/portfolio-custom-api:latest
+        image: ghcr.io/marcelus85er/portfolio-ops/portfolio-custom-api:1.0.0-beta.3
         ports:
         - containerPort: 3000
         env:
