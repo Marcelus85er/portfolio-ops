@@ -16,7 +16,7 @@ spec:
       containers:
       - name: frontend
         # The specific Git commit hash your CI pipeline built
-        image: ghcr.io/marcelus85er/portfolio-ops/portfolio-frontend:1.0.0-beta.3
+        image: ghcr.io/marcelus85er/portfolio-ops/portfolio-frontend:0ae9aede1c5db63e658333c573e822fe602f8eb7
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

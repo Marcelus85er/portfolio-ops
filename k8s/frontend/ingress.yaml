@@ -13,7 +13,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: portfolio-backend
+            name: portfolio-strapi
             port:
               number: 1337
 
