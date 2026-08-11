@@ -31,9 +31,20 @@ async def run_bot(thread_id: str, message: str, tenant_id: str, resume_data: dic
     model_name = "gpt-4o-mini"
     llm = ChatOpenAI(model=model_name, temperature=0.2)
     
-# We use 'connections' instead of 'config', and explicitly define the 'stdio' transport
-    async with MultiServerMCPClient(connections={"Tools": {"transport": "stdio", "command": "python", "args": ["mcp_server.py"]}}) as mcp_client:
-        tools = await load_mcp_tools(mcp_client)
+# NEW CODE
+    mcp_client = MultiServerMCPClient(
+        connections={
+            "Tools": {
+                "transport": "stdio",
+                "command": "python", 
+                "args": ["mcp_server.py"]
+            }
+        }
+    )
+    
+    # Use the specific session name ("Tools") to load the tools
+    async with mcp_client.session("Tools") as session:
+        tools = await load_mcp_tools(session)
         llm_with_tools = llm.bind_tools(tools)
         
         async def call_model(state: MessagesState, config: RunnableConfig):
@@ -52,7 +63,6 @@ async def run_bot(thread_id: str, message: str, tenant_id: str, resume_data: dic
             if tenant_data["hitl_mode"] == "STRICT":
                 requires_approval = True
             elif tenant_data["hitl_mode"] == "SAFEGUARDS_ONLY" and response.tool_calls:
-                # Trigger interrupt if the AI tries to use a high-risk tool
                 if any(tool["name"] == "apply_discount" for tool in response.tool_calls):
                     requires_approval = True
             
@@ -61,7 +71,6 @@ async def run_bot(thread_id: str, message: str, tenant_id: str, resume_data: dic
                     "type": "APPROVAL_REQUIRED",
                     "proposed_reply": response.content or str(response.tool_calls)
                 })
-                # If human edited the message before approving, replace it entirely
                 if human_decision.get("edited_reply"):
                     return {"messages": [AIMessage(content=human_decision["edited_reply"])]}
             
@@ -77,13 +86,11 @@ async def run_bot(thread_id: str, message: str, tenant_id: str, resume_data: dic
             graph = builder.compile(checkpointer=checkpointer)
             config = {"configurable": {"thread_id": thread_id, "tenant_id": tenant_id}}
             
-            # Resume interrupted state or process new message
             if resume_data:
                 result = await graph.ainvoke(Command(resume=resume_data), config)
             else:
                 result = await graph.ainvoke({"messages": [HumanMessage(content=message)]}, config)
             
-            # Check if graph paused waiting for human approval
             snapshot = await graph.aget_state(config)
             if snapshot.next:
                 return {"status": "PENDING_APPROVAL", "data": snapshot.tasks[0].interrupts[0].value}
