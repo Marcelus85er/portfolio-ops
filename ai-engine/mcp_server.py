@@ -4,6 +4,7 @@ import tempfile
 import requests
 import logging
 import psycopg
+import warnings
 from psycopg.rows import dict_row
 from mcp.server.fastmcp import FastMCP
 from langchain_openai import ChatOpenAI
@@ -13,8 +14,11 @@ from langchain_core.messages import HumanMessage
 from langchain_docling.loader import DoclingLoader
 from langchain_docling.loader import ExportType
 
-# CRITICAL: Route logs to stderr so they do not corrupt the stdio JSON-RPC stream
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+# --- STRICT STREAM PROTECTION ---
+# 1. Kill the Pydantic warnings
+warnings.filterwarnings("ignore")
+# 2. Silence the FastMCP internal INFO logs (set back to CRITICAL)
+logging.basicConfig(stream=sys.stderr, level=logging.CRITICAL)
 
 mcp = FastMCP("MultiTenant_Tools")
 DB_URI = os.getenv("DATABASE_URL", "postgresql://user:pass@postgres:5432/portfolio?sslmode=disable")
