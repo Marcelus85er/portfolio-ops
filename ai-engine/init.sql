@@ -1,15 +1,19 @@
+-- Enable vector extension for RAG / Embeddings
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Tenants Table with Kill Switch
+-- Tenants Table (Accounts for Dealerships/Clerks)
 CREATE TABLE IF NOT EXISTS tenants (
     id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     system_prompt TEXT NOT NULL,
     hitl_mode VARCHAR(20) DEFAULT 'SAFEGUARDS_ONLY',
-    is_active BOOLEAN DEFAULT TRUE, -- Kill switch: TRUE = ON, FALSE = OFF
+    is_active BOOLEAN DEFAULT TRUE,
     max_auto_discount NUMERIC DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Schema Migration Safeguard: Ensures 'is_active' exists even if 'tenants' was created in an earlier build
+ALTER TABLE tenants ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
 
 -- Permanent Knowledge Base & Sharable Assets (Clerk Uploads)
 CREATE TABLE IF NOT EXISTS tenant_documents (
@@ -32,7 +36,7 @@ CREATE TABLE IF NOT EXISTS inventory (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Token Utilization Audit Table
+-- Token Utilization & Billing Audit Table
 CREATE TABLE IF NOT EXISTS token_billing (
     id SERIAL PRIMARY KEY,
     tenant_id VARCHAR(50) REFERENCES tenants(id) ON DELETE CASCADE,
@@ -43,7 +47,7 @@ CREATE TABLE IF NOT EXISTS token_billing (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Seed Data Update
+-- Seed Data for Testing (Clerk A)
 INSERT INTO tenants (id, name, system_prompt, hitl_mode, is_active) 
 VALUES (
     'clerk_a', 
@@ -52,8 +56,10 @@ VALUES (
     'SAFEGUARDS_ONLY',
     TRUE
 ) ON CONFLICT (id) DO UPDATE 
-SET system_prompt = EXCLUDED.system_prompt, is_active = EXCLUDED.is_active;
+SET system_prompt = EXCLUDED.system_prompt, 
+    is_active = EXCLUDED.is_active;
 
+-- Seed Data for Inventory
 INSERT INTO inventory (tenant_id, make, model, price) VALUES 
 ('clerk_a', 'Honda', 'Civic', 12000),
 ('clerk_a', 'Honda', 'Accord', 15000)
