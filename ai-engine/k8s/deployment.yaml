@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-engine
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-engine
+  template:
+    metadata:
+      labels:
+        app: ai-engine
+    spec:
+      containers:
+      - name: ai-engine
+        image: ghcr.io/marcelus85er/portfolio-ops/ai-engine:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+        # Connects to your homelab Postgres
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secrets
+              key: connection_string
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-secrets
+              key: openai_key
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-engine-svc
+  namespace: default
+spec:
+  selector:
+    app: ai-engine
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

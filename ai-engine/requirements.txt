@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+langgraph
+langchain-openai
+langchain-mcp-adapters
+mcp
+langgraph-checkpoint-postgres
+psycopg[binary,pool]
+pydantic
+pypdf
+requests
