@@ -31,7 +31,8 @@ async def run_bot(thread_id: str, message: str, tenant_id: str, resume_data: dic
     model_name = "gpt-4o-mini"
     llm = ChatOpenAI(model=model_name, temperature=0.2)
     
-    async with MultiServerMCPClient(config={"Tools": {"command": "python", "args": ["mcp_server.py"]}}) as mcp_client:
+# We use 'connections' instead of 'config', and explicitly define the 'stdio' transport
+    async with MultiServerMCPClient(connections={"Tools": {"transport": "stdio", "command": "python", "args": ["mcp_server.py"]}}) as mcp_client:
         tools = await load_mcp_tools(mcp_client)
         llm_with_tools = llm.bind_tools(tools)
         
