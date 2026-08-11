@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 import requests
 import logging
@@ -7,7 +8,13 @@ from psycopg.rows import dict_row
 from mcp.server.fastmcp import FastMCP
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
-from langchain_community.document_loaders import PyPDFLoader
+
+# Docling Imports
+from langchain_docling.loader import DoclingLoader
+from langchain_docling.loader import ExportType
+
+# CRITICAL: Route logs to stderr so they do not corrupt the stdio JSON-RPC stream
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 mcp = FastMCP("MultiTenant_Tools")
 DB_URI = os.getenv("DATABASE_URL", "postgresql://user:pass@postgres:5432/portfolio?sslmode=disable")
@@ -52,9 +59,10 @@ def process_infographic(image_url: str, tenant_id: str) -> dict:
 
 @mcp.tool()
 def process_pdf(pdf_url: str, tenant_id: str) -> dict:
-    """Downloads a PDF document from a URL and extracts all text for ingestion."""
+    """Downloads a PDF and extracts deep structured text and tables using Docling."""
     logging.info(f"Processing PDF for Tenant: {tenant_id}")
     try:
+        # Download the PDF securely
         response = requests.get(pdf_url, stream=True)
         if response.status_code != 200:
             return {"error": f"Failed to download PDF. Status: {response.status_code}"}
@@ -64,20 +72,30 @@ def process_pdf(pdf_url: str, tenant_id: str) -> dict:
                 tmp_file.write(chunk)
             tmp_path = tmp_file.name
         
-        loader = PyPDFLoader(tmp_path)
-        pages = loader.load()
-        full_text = "\n\n".join([f"--- Page {i+1} ---\n{page.page_content}" for i, page in enumerate(pages)])
+        # --- IMPLEMENTED DOCLING LOGIC ---
+        # Exporting as Markdown ensures tables and matrices are perfectly preserved for the LLM
+        loader = DoclingLoader(
+            file_path=tmp_path,
+            export_type=ExportType.MARKDOWN
+        )
         
+        # Load the structured documents
+        docs = loader.load()
+        
+        # Combine the markdown text
+        full_text = "\n\n".join([doc.page_content for doc in docs])
+        
+        # Clean up the temp file
         os.remove(tmp_path)
         
         return {
             "status": "success",
-            "pages_extracted": len(pages),
+            "elements_extracted": len(docs),
             "text_preview": full_text[:500] + "...", 
             "full_extracted_text": full_text
         }
     except Exception as e:
-        return {"error": f"Failed to process PDF: {str(e)}"}
+        return {"error": f"Failed to process PDF via Docling: {str(e)}"}
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")

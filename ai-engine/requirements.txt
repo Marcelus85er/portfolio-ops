@@ -7,6 +7,5 @@ mcp
 langgraph-checkpoint-postgres
 psycopg[binary,pool]
 pydantic
-pypdf
 requests
-langchain-community
+langchain-docling
