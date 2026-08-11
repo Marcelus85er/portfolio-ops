@@ -9,3 +9,4 @@ psycopg[binary,pool]
 pydantic
 pypdf
 requests
+langchain-community
