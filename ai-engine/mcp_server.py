@@ -19,16 +19,27 @@ mcp = FastMCP("MultiTenant_Tools")
 DB_URI = os.getenv("DATABASE_URL", "postgresql://admin:supersecurepassword123@postgres:5432/portfoliodb?sslmode=disable")
 
 @mcp.tool()
-def search_inventory(make: str, budget_max: int, tenant_id: str) -> list[dict]:
-    """Search dealership inventory for vehicles matching user criteria."""
+def search_inventory(tenant_id: str, make: str = None, budget_max: int = None) -> list[dict]:
+    """Search dealership inventory for vehicles matching criteria. 
+    If make or budget_max are omitted, returns all available vehicles for the tenant.
+    """
+    query = "SELECT id, make, model, price, status FROM inventory WHERE tenant_id = %s AND status = 'Available'"
+    params = [tenant_id]
+    
+    if make:
+        query += " AND make ILIKE %s"
+        params.append(f"%{make}%")
+    if budget_max is not None and budget_max > 0:
+        query += " AND price <= %s"
+        params.append(budget_max)
+        
+    query += " ORDER BY price ASC"
+    
     with psycopg.connect(DB_URI) as conn:
         with conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(
-                "SELECT id, make, model, price, status FROM inventory WHERE tenant_id = %s AND make ILIKE %s AND price <= %s AND status = 'Available'", 
-                (tenant_id, f"%{make}%", budget_max)
-            )
+            cur.execute(query, tuple(params))
             results = cur.fetchall()
-            return results if results else [{"error": "No available vehicles match this criteria."}]
+            return results if results else [{"message": "No available vehicles match this criteria in our inventory."}]
 
 @mcp.tool()
 def apply_discount(vehicle_id: int, discount_amount: int, tenant_id: str) -> dict:
