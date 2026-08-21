@@ -1,118 +1,74 @@
 import os
 import psycopg
-from langgraph.graph import StateGraph, START, END, MessagesState
-from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
-from langgraph.prebuilt import ToolNode
-from langgraph.types import interrupt, Command
+from psycopg.rows import dict_row
+from typing import Annotated, Sequence
+from typing_extensions import TypedDict
+from langchain_core.messages import BaseMessage, SystemMessage, trim_messages
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from langchain_core.runnables.config import RunnableConfig
-from langchain_mcp_adapters.client import MultiServerMCPClient
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+from langgraph.prebuilt import ToolNode, tools_condition
+from langgraph.checkpoint.postgres import PostgresSaver
 
-DB_URI = os.getenv("DATABASE_URL", "postgresql://admin:supersecurepassword123@postgres:5432/portfoliodb?sslmode=disable")
+DB_URI = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@postgres:5432/portfolio")
 
-async def fetch_tenant_config(tenant_id: str):
-    async with await psycopg.AsyncConnection.connect(DB_URI) as conn:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT system_prompt, hitl_mode, is_active FROM tenants WHERE id = %s", (tenant_id,))
-            record = await cur.fetchone()
-            if record:
-                return {"prompt": record[0], "hitl_mode": record[1], "is_active": record[2]}
-            return {"prompt": "You are an auto assistant.", "hitl_mode": "SAFEGUARDS_ONLY", "is_active": True}
+# 1. State Definition
+class AgentState(TypedDict):
+    messages: Annotated[Sequence[BaseMessage], add_messages]
+    tenant_id: str
 
-async def log_token_usage(tenant_id: str, thread_id: str, usage: dict, model: str):
-    async with await psycopg.AsyncConnection.connect(DB_URI) as conn:
-        async with conn.cursor() as cur:
-            await cur.execute(
-                "INSERT INTO token_billing (tenant_id, thread_id, input_tokens, output_tokens, model_used) VALUES (%s, %s, %s, %s, %s)",
-                (tenant_id, thread_id, usage["input_tokens"], usage["output_tokens"], model)
-            )
-            await conn.commit()
+# 2. Fetch Tenant Config from Postgres
+def get_tenant_config(tenant_id: str) -> dict:
+    query = "SELECT system_prompt, default_model, temperature FROM tenants_config WHERE tenant_id = %s"
+    with psycopg.connect(DB_URI) as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(query, (tenant_id,))
+            row = cur.fetchone()
+            if row:
+                return row
+    # Default fallback
+    return {
+        "system_prompt": "You are a helpful assistant.",
+        "default_model": "gpt-4o-mini",
+        "temperature": 0.2
+    }
 
-async def run_bot(thread_id: str, message: str, tenant_id: str, resume_data: dict = None) -> dict:
-    tenant_data = await fetch_tenant_config(tenant_id)
-    
-    # --- CONTROL 1: TENANT ON/OFF KILL SWITCH ---
-    if not tenant_data["is_active"]:
-        return {
-            "status": "DISABLED",
-            "reply": "Our AI automated assistant is currently offline. Please call back during business hours or wait for a representative."
-        }
-        
-    model_name = "gpt-4o-mini"
-    llm = ChatOpenAI(model=model_name, temperature=0.2)
-    
-    mcp_client = MultiServerMCPClient(
-        connections={
-            "Tools": {
-                "transport": "stdio",
-                "command": "python", 
-                "args": ["mcp_server.py"]
-            }
-        }
-    )
-    
-    try:
-        tools = await mcp_client.get_tools()
-        llm_with_tools = llm.bind_tools(tools)
-        
-        async def call_model(state: MessagesState, config: RunnableConfig):
-            current_tenant = config["configurable"]["tenant_id"]
-            current_thread = config["configurable"]["thread_id"]
-            
-            messages = [SystemMessage(content=tenant_data["prompt"])] + state["messages"]
-            response = await llm_with_tools.ainvoke(messages)
-            
-            if response.usage_metadata:
-                await log_token_usage(current_tenant, current_thread, response.usage_metadata, model_name)
-            
-            # --- CONTROL 2: HITL SAFEGUARD FAUCET ---
-            requires_approval = False
-            if tenant_data["hitl_mode"] == "STRICT":
-                requires_approval = True
-            elif tenant_data["hitl_mode"] == "SAFEGUARDS_ONLY" and response.tool_calls:
-                if any(tool["name"] == "apply_discount" for tool in response.tool_calls):
-                    requires_approval = True
-            
-            if requires_approval:
-                human_decision = interrupt({
-                    "type": "APPROVAL_REQUIRED",
-                    "proposed_reply": response.content or str(response.tool_calls)
-                })
-                if human_decision.get("edited_reply"):
-                    return {"messages": [AIMessage(content=human_decision["edited_reply"])]}
-            
-            return {"messages": response}
+# 3. Dynamic Agent Node with Message Trimming
+def make_agent_node(tools):
+    def agent_node(state: AgentState):
+        tenant_id = state.get("tenant_id", "clerk_a")
+        cfg = get_tenant_config(tenant_id)
 
-        def route_tools(state: MessagesState):
-            if state["messages"][-1].tool_calls:
-                return "tools"
-            return END
+        # Message Trimmer: Keep system prompt + last 8 messages (prevent context explosion)
+        trimmed = trim_messages(
+            state["messages"],
+            max_tokens=2000,
+            token_counter=len, # Character/word count approximation for speed
+            strategy="last",
+            start_on="human",
+            include_system=False
+        )
 
-        builder = StateGraph(MessagesState)
-        builder.add_node("agent", call_model)
-        builder.add_node("tools", ToolNode(tools))
-        
-        builder.add_edge(START, "agent")
-        builder.add_conditional_edges("agent", route_tools, ["tools", END])
-        builder.add_edge("tools", "agent")
+        llm = ChatOpenAI(
+            model=cfg["default_model"],
+            temperature=cfg["temperature"],
+            api_key=os.getenv("OPENAI_API_KEY")
+        ).bind_tools(tools)
 
-        async with AsyncPostgresSaver.from_conn_string(DB_URI) as checkpointer:
-            await checkpointer.setup()
-            graph = builder.compile(checkpointer=checkpointer)
-            config = {"configurable": {"thread_id": thread_id, "tenant_id": tenant_id}}
-            
-            if resume_data:
-                result = await graph.ainvoke(Command(resume=resume_data), config)
-            else:
-                result = await graph.ainvoke({"messages": [HumanMessage(content=message)]}, config)
-            
-            snapshot = await graph.aget_state(config)
-            if snapshot.next:
-                return {"status": "PENDING_APPROVAL", "data": snapshot.tasks[0].interrupts[0].value}
-            
-            return {"status": "COMPLETED", "reply": result["messages"][-1].content}
-            
-    finally:
-        if hasattr(mcp_client, "close"):
-            await mcp_client.close()
+        sys_msg = SystemMessage(content=cfg["system_prompt"])
+        response = llm.invoke([sys_msg] + trimmed)
+        return {"messages": [response]}
+
+    return agent_node
+
+# 4. Graph Builder
+def create_graph(tools, checkpointer: PostgresSaver):
+    builder = StateGraph(AgentState)
+    builder.add_node("agent", make_agent_node(tools))
+    builder.add_node("tools", ToolNode(tools))
+
+    builder.add_edge(START, "agent")
+    builder.add_conditional_edges("agent", tools_condition)
+    builder.add_edge("tools", "agent")
+
+    return builder.compile(checkpointer=checkpointer)
